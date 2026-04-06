@@ -1,0 +1,1503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SuperMart | Premium Grocery</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #007bff;
+            --light-blue: #e3f2fd;
+            --white: #ffffff;
+            --shadow: 0 8px 32px rgba(0,123,255,0.15);
+        }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--light-blue); }
+        
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-blue), #0056b3);
+            box-shadow: var(--shadow);
+            padding: 15px 0;
+        }
+        .nav-link { color: white !important; transition: 0.3s; }
+        .nav-link:hover { opacity: 0.8; }
+        
+        .product-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: none;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        .product-card:hover { transform: translateY(-10px); box-shadow: var(--shadow); }
+            
+        .qty-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .qty-btn {
+            width: 38px;
+            height: 38px;
+            border: 1px solid #ced4da;
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #495057;
+            transition: 0.2s;
+        }
+        .qty-btn:hover { background: #f8f9fa; border-color: var(--primary-blue); }
+        .qty-display {
+            width: 60px;
+            height: 45px;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.2rem;
+            line-height: 45px;
+            background: white;
+        }
+        .qty-btn:focus { outline: none !important; box-shadow: none !important; }
+        .qty-btn:active { background: #f1f3f5; transform: scale(0.95); }
+
+        .btn-add-cart {
+            background: linear-gradient(45deg, var(--primary-blue), #0056b3);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 12px;
+            font-weight: 700;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: 0.3s;
+        }
+        .btn-add-cart:hover { transform: scale(1.03); box-shadow: 0 4px 15px rgba(0,123,255,0.3); color: white; }
+        
+        .filter-container {
+            white-space: nowrap;
+            overflow-x: auto;
+            scrollbar-width: none;
+            display: flex;
+            gap: 10px;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        .filter-btn { border-radius: 20px; min-width: 100px; }
+
+        .btn-logout {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            border-radius: 8px;
+            padding: 5px 12px;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+        .btn-logout:hover { background: #dc3545; border-color: #dc3545; transform: scale(1.05); }
+        .cart-item-img { width: 60px; height: 60px; object-fit: contain; background: #f8f9fa; border-radius: 10px; }
+
+        .user-dashboard { display: none; min-height: 100vh; background: linear-gradient(135deg, var(--light-blue), #f0f8ff); padding-top: 100px; }
+        .user-dashboard.show { display: block !important; }
+        .main-content { transition: opacity 0.4s ease; min-height: 100vh; }
+        .main-content.hidden { opacity: 0; pointer-events: none; position: fixed; top: 0; left: 0; width: 100%; z-index: -1; }
+
+        .dashboard-header { background: linear-gradient(135deg, var(--primary-blue), #0056b3); color: white; padding: 3rem 0 2rem; margin-bottom: 3rem; position: relative; border-radius: 0 0 30px 30px; }
+        .profile-section { display: flex; align-items: center; gap: 2rem; margin-bottom: 1rem; }
+        .profile-avatar { width: 100px; height: 100px; background: rgba(255,255,255,0.2); border: 3px solid white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3rem; backdrop-filter: blur(10px); overflow: hidden; }
+        .profile-info h2 { margin: 0; font-weight: 700; font-size: 1.8rem; }
+        .profile-info p { margin: 0.3rem 0 0 0; opacity: 0.9; font-size: 0.95rem; }
+        .member-badge { display: inline-block; background: rgba(255,255,255,0.3); border: 1px solid rgba(255,255,255,0.5); padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.85rem; margin-top: 0.5rem; }
+
+        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 3rem; }
+        .stat-card { background: white; border-radius: 20px; padding: 1.5rem; box-shadow: 0 5px 20px rgba(0,0,0,0.08); text-align: center; transition: all 0.3s; border: none; }
+        .stat-card:hover { transform: translateY(-8px); box-shadow: 0 15px 40px rgba(0,0,0,0.15); }
+        .stat-icon { font-size: 2.5rem; margin-bottom: 0.8rem; }
+        .stat-label { color: #999; font-size: 0.85rem; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-value { font-size: 1.8rem; font-weight: 700; margin: 0; }
+
+        .dashboard-tabs { display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 2px solid #e0e0e0; }
+        .tab-btn { padding: 1rem 1.5rem; border: none; background: none; color: #666; font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.3s; white-space: nowrap; }
+        .tab-btn.active { color: var(--primary-blue); border-bottom-color: var(--primary-blue); }
+        .tab-btn:hover { color: var(--primary-blue); }
+
+        .order-card { border: none; border-radius: 15px; overflow: hidden; transition: all 0.3s; box-shadow: 0 5px 20px rgba(0,0,0,0.08); background: white; border-left: 5px solid #ddd; margin-bottom: 1.5rem; }
+        .order-card.pending { border-left-color: #ffc107; }
+        .order-card.delivered { border-left-color: #28a745; }
+        .order-card.cancelled { border-left-color: #dc3545; opacity: 0.7; }
+        .order-card:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0,0,0,0.15); }
+        .order-card-header { background: white; padding: 1.5rem; border-bottom: 1px solid #f0f0f0; }
+        .order-id-badge { background: #f0f8ff; color: var(--primary-blue); padding: 0.5rem 1rem; border-radius: 20px; font-weight: 600; font-size: 0.85rem; display: inline-block; margin-bottom: 0.5rem; }
+
+        .order-meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.6rem 1.2rem; margin-top: 0.8rem; padding: 0.8rem 1rem; background: #f8faff; border-radius: 10px; border: 1px solid #e8f0fe; }
+        .order-meta-item { display: flex; flex-direction: column; gap: 2px; }
+        .order-meta-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: #999; font-weight: 600; }
+        .order-meta-value { font-size: 0.85rem; font-weight: 600; color: #333; }
+        .order-total-row { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 1rem; background: #f0f8ff; border-radius: 8px; margin-top: 0.6rem; }
+        .order-total-label { font-size: 0.8rem; color: #666; font-weight: 600; }
+        .order-total-value { font-size: 1.1rem; font-weight: 700; color: var(--primary-blue); }
+
+        .order-items-preview { background: #f5f5f5; padding: 1rem; margin: 1rem 0; border-radius: 12px; }
+        .item-preview { display: flex; gap: 1rem; align-items: center; padding: 0.8rem 0; border-bottom: 1px solid #e0e0e0; }
+        .item-preview:last-child { border-bottom: none; }
+        .item-img { width: 50px; height: 50px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .item-img img { width: 100%; height: 100%; object-fit: contain; }
+        .item-details { flex: 1; }
+        .item-name { font-weight: 600; font-size: 0.9rem; margin: 0; }
+        .item-qty { color: #999; font-size: 0.85rem; margin: 0.3rem 0 0 0; }
+        .item-price { font-weight: 700; color: var(--primary-blue); }
+
+        .status-badge { padding: 0.5rem 1rem; border-radius: 20px; font-weight: 600; font-size: 0.85rem; display: inline-block; }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-delivered { background: #d4edda; color: #155724; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+        .status-awaiting { background: #cce5ff; color: #004085; }
+
+        .order-actions { padding: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .btn-action { padding: 0.6rem 1rem; border: none; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.3s; flex: 1; min-width: 100px; }
+        .btn-reorder { background: var(--primary-blue); color: white; }
+        .btn-reorder:hover { background: #0056b3; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,123,255,0.3); }
+        .btn-cancel { background: #ffebee; color: #dc3545; }
+        .btn-cancel:hover { background: #f8d7da; }
+
+        /* ── Profile Card ── */
+        .profile-card { background: white; border-radius: 20px; padding: 2rem; box-shadow: 0 5px 20px rgba(0,0,0,0.08); margin-bottom: 2rem; }
+        .profile-field { margin-bottom: 1.5rem; }
+        .profile-field-label { color: #999; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.4rem; font-weight: 600; }
+        .profile-field-value { font-size: 1rem; font-weight: 600; color: #333; }
+
+        /* ── Profile Picture Circle ── */
+        .profile-pic-circle {
+            width: 110px; height: 110px; border-radius: 50%;
+            margin: 0 auto 10px; background: var(--light-blue);
+            border: 3px solid var(--primary-blue);
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+        }
+        .profile-pic-circle img { width: 100%; height: 100%; object-fit: cover; }
+        .profile-pic-circle i { font-size: 2.8rem; color: var(--primary-blue); }
+
+        /* ── Edit Profile button ── */
+        .btn-edit-profile {
+            padding: 0.55rem 1.3rem;
+            background: var(--primary-blue);
+            color: white; border: none;
+            border-radius: 8px; font-weight: 600;
+            cursor: pointer; transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+        .btn-edit-profile:hover { background: #0056b3; transform: translateY(-1px); }
+
+        /* ── Gender badge ── */
+        .gender-badge {
+            display: inline-block;
+            padding: 0.3rem 0.9rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .gender-male   { background: #e3f2fd; color: #0056b3; }
+        .gender-female { background: #fce4ec; color: #c2185b; }
+        .gender-other  { background: #f3e5f5; color: #7b1fa2; }
+        .gender-none   { background: #f5f5f5; color: #757575; }
+
+        .address-card { background: white; border-radius: 15px; padding: 1.5rem; margin-bottom: 1rem; border: 2px solid #e0e0e0; transition: all 0.3s; }
+        .address-card.default { border-color: var(--primary-blue); background: #f0f8ff; }
+        .address-badge { display: inline-block; background: var(--primary-blue); color: white; padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.75rem; font-weight: 700; margin-bottom: 0.8rem; }
+        .address-type { font-weight: 700; font-size: 1rem; margin-bottom: 0.5rem; }
+        .address-text { color: #666; font-size: 0.9rem; line-height: 1.5; margin-bottom: 0.8rem; }
+        .address-actions { display: flex; gap: 0.5rem; margin-top: 1rem; }
+        .btn-sm-action { padding: 0.4rem 0.8rem; font-size: 0.8rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+        .btn-sm-delete { background: #ffebee; color: #dc3545; }
+        .btn-sm-delete:hover { background: #f8d7da; }
+        .btn-sm-edit { background: #e3f2fd; color: var(--primary-blue); }
+        .btn-sm-edit:hover { background: #bbdefb; }
+
+        .tab-content { display: none; }
+        .tab-content.show { display: block; }
+
+        .cancelled-count-badge { display: inline-block; background: #dc3545; color: white; font-size: 0.7rem; font-weight: 700; border-radius: 10px; padding: 0.15rem 0.5rem; margin-left: 6px; vertical-align: middle; }
+
+        .tracking-modal-content { border: none; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+        .tracking-modal-header { background: linear-gradient(135deg, #007bff, #0056b3); color: white; padding: 1.2rem 1.5rem; }
+        .tracking-back-btn { width: 36px; height: 36px; background: rgba(255,255,255,0.2); border: none; border-radius: 50%; color: white; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; flex-shrink: 0; }
+        .tracking-back-btn:hover { background: rgba(255,255,255,0.35); }
+        .tracking-modal-body { padding: 0; background: #f8faff; }
+        .delivery-date-banner { background: white; padding: 1.2rem 1.5rem; border-bottom: 1px solid #eef2ff; }
+        .delivery-date-label { font-size: 0.78rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.3rem; }
+        .delivery-date-value { font-size: 1.1rem; font-weight: 700; color: #28a745; }
+
+        .tracking-steps { display: flex; align-items: center; padding: 1.5rem 1.2rem 1rem; background: white; border-bottom: 1px solid #eef2ff; }
+        .tracking-step { display: flex; flex-direction: column; align-items: center; gap: 6px; flex-shrink: 0; }
+        .tstep-icon { width: 44px; height: 44px; border-radius: 50%; background: #e9ecef; color: #aaa; display: flex; align-items: center; justify-content: center; font-size: 1rem; transition: all 0.4s; }
+        .tstep-label { font-size: 0.68rem; color: #aaa; font-weight: 600; text-align: center; white-space: nowrap; transition: color 0.4s; }
+        .tracking-step.active .tstep-icon { background: linear-gradient(135deg, #007bff, #0056b3); color: white; box-shadow: 0 4px 14px rgba(0,123,255,0.4); }
+        .tracking-step.active .tstep-label { color: #007bff; }
+        .tracking-step.done .tstep-icon { background: #28a745; color: white; }
+        .tracking-step.done .tstep-label { color: #28a745; }
+        .tstep-line { flex: 1; height: 3px; background: #e9ecef; border-radius: 2px; margin-bottom: 20px; transition: background 0.4s; }
+        .tstep-line.done { background: #28a745; }
+        .tstep-line.active { background: linear-gradient(90deg, #28a745, #007bff); }
+
+        .courier-card { display: flex; align-items: center; gap: 1rem; background: white; margin: 1rem 1.2rem; border-radius: 14px; padding: 1rem 1.2rem; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+        .courier-logo { width: 46px; height: 46px; background: linear-gradient(135deg, #007bff, #0056b3); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem; flex-shrink: 0; }
+        .courier-name { font-weight: 700; font-size: 0.95rem; }
+        .courier-tracking { font-size: 0.8rem; color: #888; margin-top: 2px; }
+        .courier-status-badge { margin-left: auto; padding: 0.35rem 0.8rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; background: #fff3cd; color: #856404; white-space: nowrap; }
+        .courier-status-badge.shipped { background: #cce5ff; color: #004085; }
+        .courier-status-badge.out { background: #d4edda; color: #155724; }
+        .courier-status-badge.delivered { background: #d4edda; color: #155724; }
+        .courier-status-badge.pending { background: #fff3cd; color: #856404; }
+
+        .tracking-timeline { padding: 0.5rem 1.2rem 1.5rem; }
+        .timeline-item { display: flex; gap: 1rem; position: relative; padding-bottom: 1.2rem; }
+        .timeline-item:last-child { padding-bottom: 0; }
+        .timeline-item:not(:last-child)::before { content: ''; position: absolute; left: 52px; top: 22px; bottom: 0; width: 2px; background: #e0e0e0; }
+        .timeline-time { width: 52px; flex-shrink: 0; text-align: right; padding-top: 2px; }
+        .timeline-date { font-size: 0.72rem; font-weight: 700; color: #555; }
+        .timeline-hour { font-size: 0.68rem; color: #aaa; }
+        .timeline-dot { width: 14px; height: 14px; border-radius: 50%; background: #dee2e6; flex-shrink: 0; margin-top: 4px; position: relative; z-index: 1; border: 2px solid white; box-shadow: 0 0 0 2px #dee2e6; }
+        .timeline-item.latest .timeline-dot { background: #007bff; box-shadow: 0 0 0 3px rgba(0,123,255,0.25); width: 16px; height: 16px; }
+        .timeline-text { flex: 1; font-size: 0.85rem; padding-top: 1px; }
+        .timeline-item.latest .timeline-text { color: #007bff; font-weight: 700; font-size: 0.9rem; }
+
+        .btn-track { background: linear-gradient(135deg, #17a2b8, #138496); color: white; }
+        .btn-track:hover { background: linear-gradient(135deg, #138496, #0f6674); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(23,162,184,0.35); }
+
+        .back-to-shop { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 12px 24px; border-radius: 50px; font-weight: 600; transition: all 0.3s; }
+        .back-to-shop:hover { background: white; color: var(--primary-blue); transform: translateX(-5px); }
+
+        .payment-loading-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9999; align-items: center; justify-content: center; flex-direction: column; gap: 1rem; color: white; }
+        .payment-loading-overlay.show { display: flex; }
+        .payment-loading-overlay .spinner { width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Profile edit form ── */
+        .profile-edit-section { background: #f8faff; border-radius: 16px; padding: 1.5rem; border: 1px solid #e3eeff; margin-top: 1rem; }
+        .pic-upload-wrapper {
+            width: 110px; height: 110px; border-radius: 50%;
+            margin: 0 auto 8px; background: var(--light-blue);
+            border: 3px dashed var(--primary-blue);
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; cursor: pointer; transition: 0.3s;
+            position: relative;
+        }
+        .pic-upload-wrapper:hover { border-style: solid; opacity: 0.85; }
+        .pic-upload-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+        .pic-upload-wrapper i { font-size: 2.8rem; color: var(--primary-blue); }
+        .pic-upload-overlay {
+            position: absolute; inset: 0; background: rgba(0,91,187,0.45);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; transition: 0.2s; border-radius: 50%;
+        }
+        .pic-upload-wrapper:hover .pic-upload-overlay { opacity: 1; }
+        .pic-upload-overlay i { font-size: 1.4rem; color: white; }
+
+        @media (max-width: 768px) {
+            .profile-section { gap: 1rem; }
+            .profile-avatar { width: 80px; height: 80px; font-size: 2rem; }
+            .profile-info h2 { font-size: 1.3rem; }
+            .tab-btn { padding: 0.8rem 1rem; font-size: 0.85rem; }
+            .order-meta-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Payment Loading Overlay -->
+    <div class="payment-loading-overlay" id="paymentLoadingOverlay">
+        <div class="spinner"></div>
+        <div style="font-size: 1.1rem; font-weight: 600;">Redirecting to payment...</div>
+        <div style="font-size: 0.85rem; opacity: 0.8;">Please do not close this window.</div>
+    </div>
+
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold fs-3" href="#" onclick="showMainContent()">
+                <i class="fas fa-shopping-cart me-2"></i>SuperMart
+            </a>
+            <div class="d-flex align-items-center">
+                <a class="nav-link position-relative me-4" href="#" onclick="openCart()">
+                    <i class="fas fa-shopping-bag fs-4"></i>
+                    <span class="badge rounded-pill bg-danger position-absolute top-0 start-100 translate-middle" id="cartBadge" style="display: none;">0</span>
+                </a>
+                <a class="nav-link d-flex align-items-center fw-bold" href="#" onclick="toggleDashboard()" id="profileLink">
+                    <i class="fas fa-user-circle fs-4 me-2"></i>
+                    <span id="profileText">
+                        {% if user.is_authenticated %}
+                            {{ user.username }}
+                        {% else %}
+                            Guest
+                        {% endif %}
+                    </span>
+                </a>
+                {% if user.is_authenticated %}
+                <form method="post" action="{% url 'logout' %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-logout ms-3" title="Logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content (Products) -->
+    <section class="container main-content" id="mainContent" style="margin-top: 100px;">
+        <div class="filter-container justify-content-center">
+            <button class="btn btn-outline-primary filter-btn active" onclick="filterProducts('all', this)">All</button>
+            <button class="btn btn-outline-success filter-btn" onclick="filterProducts('fruits', this)">Fruits</button>
+            <button class="btn btn-outline-info filter-btn" onclick="filterProducts('vegetables', this)">Veggie</button>
+            <button class="btn btn-outline-warning filter-btn" onclick="filterProducts('dairy', this)">Dairy</button>
+            <button class="btn btn-outline-danger filter-btn" onclick="filterProducts('meats', this)">Meats</button>
+            <button class="btn btn-outline-secondary filter-btn" onclick="filterProducts('drinks', this)">Drinks</button>
+            <button class="btn btn-outline-dark filter-btn" onclick="filterProducts('sweets', this)">Sweets</button>
+        </div>
+        <div class="row mt-4" id="productGrid">
+            <div class="col-12 text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="mt-2 text-muted">Loading fresh products...</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- User Dashboard -->
+    <section class="user-dashboard" id="userDashboard">
+        <div class="dashboard-header">
+            <div class="container">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div class="profile-section">
+                        <div class="profile-avatar" id="dashboardAvatar"><i class="fas fa-user"></i></div>
+                        <div class="profile-info">
+                            <h2 id="dashboardUsername">Hi, Welcome!</h2>
+                            <p id="dashboardEmail">—</p>
+                            <div class="member-badge"><i class="fas fa-crown me-1"></i>Premium Member</div>
+                        </div>
+                    </div>
+                    <button class="btn back-to-shop px-4 py-2" onclick="showMainContent()">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Shop
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="container pb-5">
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-icon text-success"><i class="fas fa-shopping-bag"></i></div>
+                    <div class="stat-label">Total Orders</div>
+                    <p class="stat-value" id="statOrderCount">0</p>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon text-primary"><i class="fas fa-wallet"></i></div>
+                    <div class="stat-label">Total Spent</div>
+                    <p class="stat-value" id="statTotalSpent">₱0.00</p>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon text-warning"><i class="fas fa-clock"></i></div>
+                    <div class="stat-label">Pending Orders</div>
+                    <p class="stat-value" id="statPending">0</p>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon text-info"><i class="fas fa-truck"></i></div>
+                    <div class="stat-label">Delivered</div>
+                    <p class="stat-value" id="statDelivered">0</p>
+                </div>
+            </div>
+
+            <div class="dashboard-tabs">
+                <button class="tab-btn active" id="tabBtnOrders" onclick="switchTab('orders', this)">
+                    <i class="fas fa-history me-2"></i>Order History
+                </button>
+                <button class="tab-btn" id="tabBtnCancelled" onclick="switchTab('cancelled', this)">
+                    <i class="fas fa-ban me-2"></i>Cancelled Orders
+                    <span class="cancelled-count-badge" id="cancelledCountBadge" style="display:none;"></span>
+                </button>
+                <button class="tab-btn" onclick="switchTab('profile', this)">
+                    <i class="fas fa-user me-2"></i>Profile Info
+                </button>
+                <button class="tab-btn" onclick="switchTab('address', this)">
+                    <i class="fas fa-map-marker-alt me-2"></i>Addresses
+                </button>
+            </div>
+
+            <!-- Order History Tab -->
+            <div class="tab-content show" id="orders">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="fw-bold mb-0"><i class="fas fa-history me-2 text-primary"></i>Order History</h3>
+                    <button class="btn btn-outline-danger fw-bold px-4 py-2" onclick="clearAllHistory()">
+                        <i class="fas fa-trash-alt me-2"></i>Clear All History
+                    </button>
+                </div>
+                <div id="orderHistoryContainer"></div>
+            </div>
+
+            <!-- Cancelled Orders Tab -->
+            <div class="tab-content" id="cancelled">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="fw-bold mb-0"><i class="fas fa-ban me-2 text-danger"></i>Cancelled Orders</h3>
+                    <button class="btn btn-outline-danger fw-bold px-4 py-2" onclick="clearCancelledHistory()">
+                        <i class="fas fa-trash-alt me-2"></i>Clear Cancelled
+                    </button>
+                </div>
+                <div id="cancelledOrdersContainer"></div>
+            </div>
+
+            <!-- ══════════════════════════════════════════════════
+                 PROFILE INFO TAB — updated with all fields
+            ══════════════════════════════════════════════════ -->
+            <div class="tab-content" id="profile">
+                <div class="profile-card">
+
+                    <!-- Header row -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 class="fw-bold mb-0">
+                            <i class="fas fa-user-circle me-2 text-primary"></i>Profile Information
+                        </h3>
+                        <button class="btn-edit-profile" id="editProfileToggleBtn" onclick="toggleProfileEdit()">
+                            <i class="fas fa-edit me-1"></i>Edit Profile
+                        </button>
+                    </div>
+
+                    <!-- ── VIEW MODE ── -->
+                    <div id="profileViewMode">
+
+                        <!-- Profile picture -->
+                        <div class="text-center mb-4">
+                            <div class="profile-pic-circle" style="cursor:default; border-style:solid;">
+                                <i class="fas fa-user" id="profilePicIconView"></i>
+                                <img id="profilePicImgView" src="" style="display:none;" alt="Profile Photo">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="profile-field">
+                                    <div class="profile-field-label"><i class="fas fa-id-card me-1"></i>Full Name</div>
+                                    <div class="profile-field-value" id="profileName">—</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="profile-field">
+                                    <div class="profile-field-label"><i class="fas fa-at me-1"></i>Username</div>
+                                    <div class="profile-field-value" id="profileUsername">—</div>
+                                </div>
+                            </div>
+                        </div>
+                        <hr class="my-3">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="profile-field">
+                                    <div class="profile-field-label"><i class="fas fa-venus-mars me-1"></i>Gender</div>
+                                    <div id="profileGenderBadge">—</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="profile-field">
+                                    <div class="profile-field-label"><i class="fas fa-envelope me-1"></i>Email Address</div>
+                                    <div class="profile-field-value" id="profileEmail">—</div>
+                                </div>
+                            </div>
+                        </div>
+                        <hr class="my-3">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="profile-field">
+                                    <div class="profile-field-label"><i class="fas fa-phone me-1"></i>Phone Number</div>
+                                    <div class="profile-field-value" id="profilePhone">—</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="profile-field">
+                                    <div class="profile-field-label"><i class="fas fa-calendar-alt me-1"></i>Member Since</div>
+                                    <div class="profile-field-value" id="profileMemberSince">—</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div><!-- end #profileViewMode -->
+
+                    <!-- ── EDIT MODE (hidden by default) ── -->
+                    <div id="profileEditMode" style="display:none;">
+                        <div class="profile-edit-section">
+
+                            <!-- Profile picture upload -->
+                            <div class="text-center mb-4">
+                                <div class="pic-upload-wrapper" onclick="document.getElementById('profilePicInput').click()">
+                                    <i class="fas fa-user" id="profilePicEditIcon"></i>
+                                    <img id="profilePicEditImg" src="" style="display:none;" alt="Preview">
+                                    <div class="pic-upload-overlay">
+                                        <i class="fas fa-camera"></i>
+                                    </div>
+                                </div>
+                                <input type="file" id="profilePicInput" accept="image/*" style="display:none;" onchange="previewProfilePic(event)">
+                                <small class="text-muted">Click to upload photo <span class="text-primary fw-semibold">(optional)</span></small>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Full Name</label>
+                                    <input type="text" class="form-control" id="editFullName" placeholder="Enter your full name">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Username</label>
+                                    <input type="text" class="form-control" id="editUsername" placeholder="Enter username">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Gender</label>
+                                    <select class="form-select" id="editGender">
+                                        <option value="">— Select gender —</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        <option value="Non-binary">Non-binary</option>
+                                        <option value="Prefer not to say">Prefer not to say</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Email Address</label>
+                                    <input type="email" class="form-control" id="editEmail" placeholder="Enter email address">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold">Phone Number</label>
+                                    <input type="tel" class="form-control" id="editPhone" placeholder="09XX XXX XXXX">
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2 mt-4">
+                                <button class="btn btn-primary fw-bold px-4" onclick="saveProfileAll()">
+                                    <i class="fas fa-save me-1"></i>Save Changes
+                                </button>
+                                <button class="btn btn-outline-secondary fw-bold px-4" onclick="cancelProfileEdit()">
+                                    <i class="fas fa-times me-1"></i>Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div><!-- end #profileEditMode -->
+
+                </div>
+            </div><!-- end #profile tab -->
+
+            <!-- Address Tab -->
+            <div class="tab-content" id="address">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="fw-bold mb-0"><i class="fas fa-map-marker-alt me-2 text-primary"></i>Saved Addresses</h3>
+                    <button class="btn btn-primary fw-bold" onclick="showAddressModal()"><i class="fas fa-plus me-1"></i>Add Address</button>
+                </div>
+                <div id="addressContainer"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cart Modal -->
+    <div class="modal fade" id="cartModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold"><i class="fas fa-shopping-basket me-2"></i>My Cart</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="cartList"></div>
+                    <hr>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <h5 class="mb-0">Total:</h5>
+                        <h4 class="text-success fw-bold mb-0" id="cartTotal">₱0.00</h4>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button class="btn btn-primary w-100 py-3 rounded-pill fw-bold fs-5" onclick="checkout()">
+                        <i class="fas fa-credit-card me-2"></i>Proceed to Checkout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div class="modal fade" id="checkoutModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title fw-bold"><i class="fas fa-check-circle me-2"></i>Complete Your Order</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="checkoutForm" onsubmit="return false;">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Full Name</label>
+                            <input type="text" class="form-control" id="customerName" placeholder="Enter your full name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Phone Number</label>
+                            <input type="tel" class="form-control" id="phoneNumber" placeholder="09XX XXX XXXX" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Delivery Address</label>
+                            <textarea class="form-control" id="deliveryAddress" rows="3" placeholder="House number, Street, Barangay, City, Zip Code" required></textarea>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Payment Method</label>
+                            <select class="form-select" id="paymentMethod">
+                                <option value="cod">💰 Cash on Delivery</option>
+                                <option value="gcash">📱 GCash</option>
+                                <option value="card">💳 Credit/Debit Card</option>
+                            </select>
+                        </div>
+                        <div class="p-4 bg-light rounded-4 border">
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6"><strong>Subtotal:</strong></div>
+                                <div class="col-md-6 text-end" id="summarySubtotal">₱0.00</div>
+                            </div>
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6"><strong>Delivery Fee:</strong></div>
+                                <div class="col-md-6 text-end">₱50.00</div>
+                            </div>
+                            <hr class="my-3">
+                            <div class="row g-0">
+                                <div class="col-md-6"><h4 class="fw-bold text-primary mb-0">Total to Pay:</h4></div>
+                                <div class="col-md-6 text-end"><h3 class="fw-bold text-success mb-0" id="summaryTotal">₱0.00</h3></div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-0 p-0">
+                    <button class="btn btn-success w-100 py-4 rounded-0 fw-bold fs-5" id="placeOrderBtn" onclick="processOrder()">
+                        <i class="fas fa-lock me-2"></i>Place Order Now
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Address Modal -->
+    <div class="modal fade" id="addressModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, var(--primary-blue), #0056b3); color: white; border: none;">
+                    <h5 class="modal-title fw-bold">Add New Address</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addressForm" onsubmit="return false;">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Address Type</label>
+                            <select class="form-select" id="addressType" required>
+                                <option value="Home">Home</option>
+                                <option value="Office">Office</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Full Address</label>
+                            <textarea class="form-control" id="addressText" rows="3" placeholder="House number, Street, Barangay, City, Zip Code" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Phone Number</label>
+                            <input type="tel" class="form-control" id="addressPhone" placeholder="09XX XXX XXXX" required>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="setDefault">
+                            <label class="form-check-label" for="setDefault">Set as default address</label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveAddress()">Add Address</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Tracking Modal -->
+    <div class="modal fade" id="trackingModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-md">
+            <div class="modal-content tracking-modal-content">
+                <div class="tracking-modal-header">
+                    <div class="d-flex align-items-center gap-3">
+                        <button type="button" class="tracking-back-btn" data-bs-dismiss="modal">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <div>
+                            <h5 class="mb-0 fw-bold">Track Order</h5>
+                            <small id="trackingOrderId" class="text-white-50"></small>
+                        </div>
+                    </div>
+                </div>
+                <div class="tracking-modal-body">
+                    <div class="delivery-date-banner">
+                        <div class="delivery-date-label">Estimated delivery date</div>
+                        <div class="delivery-date-value" id="trackingEstDate">—</div>
+                    </div>
+                    <div class="tracking-steps">
+                        <div class="tracking-step" id="tstep-placed">
+                            <div class="tstep-icon"><i class="fas fa-box"></i></div>
+                            <div class="tstep-label">Order Placed</div>
+                        </div>
+                        <div class="tstep-line" id="tline-1"></div>
+                        <div class="tracking-step" id="tstep-shipped">
+                            <div class="tstep-icon"><i class="fas fa-warehouse"></i></div>
+                            <div class="tstep-label">Shipped</div>
+                        </div>
+                        <div class="tstep-line" id="tline-2"></div>
+                        <div class="tracking-step" id="tstep-out">
+                            <div class="tstep-icon"><i class="fas fa-truck"></i></div>
+                            <div class="tstep-label">Out for Delivery</div>
+                        </div>
+                        <div class="tstep-line" id="tline-3"></div>
+                        <div class="tracking-step" id="tstep-delivered">
+                            <div class="tstep-icon"><i class="fas fa-check-circle"></i></div>
+                            <div class="tstep-label">Delivered</div>
+                        </div>
+                    </div>
+                    <div class="courier-card">
+                        <div class="courier-logo"><i class="fas fa-shipping-fast"></i></div>
+                        <div class="courier-info">
+                            <div class="courier-name">SuperMart Express</div>
+                            <div class="courier-tracking" id="trackingNumber">—</div>
+                        </div>
+                        <div class="courier-status-badge" id="courierStatusBadge">Pending</div>
+                    </div>
+                    <div class="tracking-timeline" id="trackingTimeline"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let allProducts = [];
+        const currentUser = "{{ user.username|default:'guest' }}";
+        let cart = JSON.parse(localStorage.getItem(`cart_${currentUser}`)) || [];
+        let orderHistory = JSON.parse(localStorage.getItem(`orders_${currentUser}`)) || [];
+        let userProfile = JSON.parse(localStorage.getItem(`profile_${currentUser}`)) || {
+            name: currentUser,
+            username: currentUser,
+            gender: '',
+            email: '',
+            phone: '',
+            profilePic: '',
+            memberSince: new Date().toLocaleDateString(),
+            addresses: []
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProducts();
+            updateCartBadge();
+        });
+
+        // ─── HELPERS ──────────────────────────────────────────────────────────────
+
+        function paymentMethodLabel(method) {
+            const map = { cod: '💰 Cash on Delivery', gcash: '📱 GCash', card: '💳 Credit/Debit Card' };
+            return map[method] || method;
+        }
+
+        function genderBadgeHTML(gender) {
+            if (!gender) return '<span class="profile-field-value">—</span>';
+            const map = {
+                'Male':              'gender-male',
+                'Female':            'gender-female',
+                'Non-binary':        'gender-other',
+                'Prefer not to say': 'gender-none'
+            };
+            const cls = map[gender] || 'gender-none';
+            const icon = gender === 'Male' ? 'fa-mars' : gender === 'Female' ? 'fa-venus' : 'fa-genderless';
+            return `<span class="gender-badge ${cls}"><i class="fas ${icon} me-1"></i>${gender}</span>`;
+        }
+
+        // ─── DASHBOARD ────────────────────────────────────────────────────────────
+
+        function toggleDashboard() {
+            const dashboard = document.getElementById('userDashboard');
+            dashboard.classList.contains('show') ? showMainContent() : showDashboard();
+        }
+
+        function showDashboard() {
+            document.getElementById('mainContent').classList.add('hidden');
+            document.getElementById('userDashboard').classList.add('show');
+            loadDashboardData();
+        }
+
+        function showMainContent() {
+            document.getElementById('mainContent').classList.remove('hidden');
+            document.getElementById('userDashboard').classList.remove('show');
+        }
+
+        function loadDashboardData() {
+            document.getElementById('dashboardUsername').textContent = `Hi, ${(userProfile.name || currentUser).split(' ')[0]}!`;
+            document.getElementById('dashboardEmail').textContent = userProfile.email || '—';
+
+            // Update dashboard avatar with profile pic
+            const avatar = document.getElementById('dashboardAvatar');
+            if (userProfile.profilePic) {
+                avatar.innerHTML = `<img src="${userProfile.profilePic}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="Avatar">`;
+            } else {
+                avatar.innerHTML = `<i class="fas fa-user"></i>`;
+            }
+
+            const totalSpent = orderHistory.reduce((sum, o) => sum + o.total, 0);
+            const pending = orderHistory.filter(o => o.status === 'Pending' || o.status === 'Awaiting Payment').length;
+            const delivered = orderHistory.filter(o => o.status === 'Delivered').length;
+            const cancelledCount = orderHistory.filter(o => o.status === 'Cancelled').length;
+
+            document.getElementById('statTotalSpent').innerText = `₱${totalSpent.toFixed(2)}`;
+            document.getElementById('statOrderCount').innerText = orderHistory.length;
+            document.getElementById('statPending').innerText = pending;
+            document.getElementById('statDelivered').innerText = delivered;
+
+            const badge = document.getElementById('cancelledCountBadge');
+            badge.textContent = cancelledCount;
+            badge.style.display = cancelledCount > 0 ? 'inline-block' : 'none';
+
+            loadOrders();
+            loadCancelledOrders();
+            loadProfileInfo();
+            loadAddresses();
+        }
+
+        function switchTab(tabName, btn) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('show'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabName).classList.add('show');
+            btn.classList.add('active');
+        }
+
+        // ─── ORDER CARD ───────────────────────────────────────────────────────────
+
+        function renderOrderCard(order, index, showCancel = true) {
+            const statusClass = order.status === 'Awaiting Payment' ? 'awaiting' : order.status.toLowerCase().replace(/ /g, '-');
+            const statusBadgeClass = order.status === 'Awaiting Payment' ? 'status-awaiting' : `status-${order.status.toLowerCase()}`;
+            const statusIcon = {
+                'Pending': 'fa-clock', 'Awaiting Payment': 'fa-hourglass-half',
+                'Delivered': 'fa-check-circle', 'Cancelled': 'fa-times-circle',
+                'Shipped': 'fa-truck', 'Out for Delivery': 'fa-map-marker-alt'
+            }[order.status] || 'fa-circle';
+
+            return `
+                <div class="order-card ${statusClass}">
+                    <div class="order-card-header">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="order-id-badge">${order.orderId}</span>
+                            <span class="status-badge ${statusBadgeClass}">
+                                <i class="fas ${statusIcon} me-1"></i>${order.status}
+                            </span>
+                        </div>
+                        <small class="text-muted"><i class="fas fa-calendar me-1"></i>${order.date} at ${order.time}</small>
+                    </div>
+                    <div class="order-items-preview">
+                        ${order.items.slice(0, 3).map(item => `
+                            <div class="item-preview">
+                                <div class="item-img"><img src="${item.image}" onerror="this.src='https://picsum.photos/seed/${item.id}/50'"></div>
+                                <div class="item-details flex-grow-1">
+                                    <p class="item-name">${item.name}</p>
+                                    <p class="item-qty">Qty: ${item.quantity}</p>
+                                </div>
+                                <div class="item-price">₱${(item.price * item.quantity).toFixed(2)}</div>
+                            </div>
+                        `).join('')}
+                        ${order.items.length > 3 ? `<small class="text-muted d-block pt-2">+${order.items.length - 3} more items</small>` : ''}
+                    </div>
+                    <div class="order-meta-grid">
+                        <div class="order-meta-item">
+                            <span class="order-meta-label"><i class="fas fa-user me-1"></i>Customer</span>
+                            <span class="order-meta-value">${order.customerName || '—'}</span>
+                        </div>
+                        <div class="order-meta-item">
+                            <span class="order-meta-label"><i class="fas fa-phone me-1"></i>Phone</span>
+                            <span class="order-meta-value">${order.phoneNumber || '—'}</span>
+                        </div>
+                        <div class="order-meta-item" style="grid-column: 1 / -1;">
+                            <span class="order-meta-label"><i class="fas fa-map-marker-alt me-1"></i>Delivery Address</span>
+                            <span class="order-meta-value">${order.address || '—'}</span>
+                        </div>
+                        <div class="order-meta-item">
+                            <span class="order-meta-label"><i class="fas fa-credit-card me-1"></i>Payment</span>
+                            <span class="order-meta-value">${paymentMethodLabel(order.paymentMethod)}</span>
+                        </div>
+                    </div>
+                    <div class="order-total-row">
+                        <span class="order-total-label"><i class="fas fa-receipt me-1"></i>Order Total</span>
+                        <span class="order-total-value">₱${order.total ? order.total.toFixed(2) : '0.00'}</span>
+                    </div>
+                    <div class="order-actions">
+                        ${order.status !== 'Cancelled' ? `
+                        <button class="btn-action btn-track" onclick="openTracking(${index})">
+                            <i class="fas fa-map-marker-alt me-1"></i>Track
+                        </button>` : ''}
+                        <button class="btn-action btn-reorder" onclick="reorderItems(${index})">
+                            <i class="fas fa-redo me-1"></i>Reorder
+                        </button>
+                        ${showCancel && order.status !== 'Cancelled' && order.status !== 'Delivered' ? `
+                        <button class="btn-action btn-cancel" onclick="cancelOrder(${index})">
+                            <i class="fas fa-ban me-1"></i>Cancel
+                        </button>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function loadOrders() {
+            const container = document.getElementById('orderHistoryContainer');
+            const activeOrders = orderHistory.map((o, i) => ({ order: o, index: i })).filter(({ order }) => order.status !== 'Cancelled');
+            if (activeOrders.length === 0) {
+                container.innerHTML = `<div class="text-center py-5"><i class="fas fa-shopping-bag" style="font-size: 4rem; color: #ddd; margin-bottom: 1rem;"></i><h5 class="text-muted">No orders yet</h5></div>`;
+                return;
+            }
+            container.innerHTML = activeOrders.map(({ order, index }) => renderOrderCard(order, index, true)).join('');
+        }
+
+        function loadCancelledOrders() {
+            const container = document.getElementById('cancelledOrdersContainer');
+            const cancelledOrders = orderHistory.map((o, i) => ({ order: o, index: i })).filter(({ order }) => order.status === 'Cancelled');
+            if (cancelledOrders.length === 0) {
+                container.innerHTML = `<div class="text-center py-5"><i class="fas fa-ban" style="font-size: 4rem; color: #ddd; margin-bottom: 1rem;"></i><h5 class="text-muted">No cancelled orders</h5></div>`;
+                return;
+            }
+            container.innerHTML = cancelledOrders.map(({ order, index }) => renderOrderCard(order, index, false)).join('');
+        }
+
+        // ─── PROFILE INFO ─────────────────────────────────────────────────────────
+
+        function loadProfileInfo() {
+            document.getElementById('profileName').textContent        = userProfile.name        || '—';
+            document.getElementById('profileUsername').textContent    = userProfile.username    || '—';
+            document.getElementById('profileEmail').textContent       = userProfile.email       || '—';
+            document.getElementById('profilePhone').textContent       = userProfile.phone       || '—';
+            document.getElementById('profileMemberSince').textContent = userProfile.memberSince || '—';
+            document.getElementById('profileGenderBadge').innerHTML   = genderBadgeHTML(userProfile.gender);
+
+            // Profile picture — view mode
+            const img  = document.getElementById('profilePicImgView');
+            const icon = document.getElementById('profilePicIconView');
+            if (userProfile.profilePic) {
+                img.src           = userProfile.profilePic;
+                img.style.display  = 'block';
+                icon.style.display = 'none';
+            } else {
+                img.style.display  = 'none';
+                icon.style.display = 'block';
+            }
+        }
+
+        function toggleProfileEdit() {
+            // Populate fields
+            document.getElementById('editFullName').value = userProfile.name     || '';
+            document.getElementById('editUsername').value = userProfile.username || '';
+            document.getElementById('editGender').value   = userProfile.gender   || '';
+            document.getElementById('editEmail').value    = userProfile.email    || '';
+            document.getElementById('editPhone').value    = userProfile.phone    || '';
+
+            // Profile pic preview in edit mode
+            const editImg  = document.getElementById('profilePicEditImg');
+            const editIcon = document.getElementById('profilePicEditIcon');
+            if (userProfile.profilePic) {
+                editImg.src          = userProfile.profilePic;
+                editImg.style.display  = 'block';
+                editIcon.style.display = 'none';
+            } else {
+                editImg.style.display  = 'none';
+                editIcon.style.display = 'block';
+            }
+
+            window._pendingProfilePic = null;
+            document.getElementById('profileViewMode').style.display    = 'none';
+            document.getElementById('profileEditMode').style.display    = 'block';
+            document.getElementById('editProfileToggleBtn').style.display = 'none';
+        }
+
+        function cancelProfileEdit() {
+            document.getElementById('profileEditMode').style.display     = 'none';
+            document.getElementById('profileViewMode').style.display     = 'block';
+            document.getElementById('editProfileToggleBtn').style.display = 'inline-block';
+            window._pendingProfilePic = null;
+        }
+
+        function previewProfilePic(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const editImg  = document.getElementById('profilePicEditImg');
+                const editIcon = document.getElementById('profilePicEditIcon');
+                editImg.src          = e.target.result;
+                editImg.style.display  = 'block';
+                editIcon.style.display = 'none';
+                window._pendingProfilePic = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function saveProfileAll() {
+            const name = document.getElementById('editFullName').value.trim();
+            const username = document.getElementById('editUsername').value.trim();
+            if (!name) { alert('Full name cannot be empty.'); return; }
+            if (!username) { alert('Username cannot be empty.'); return; }
+
+            userProfile.name     = name;
+            userProfile.username = username;
+            userProfile.gender   = document.getElementById('editGender').value;
+            userProfile.email    = document.getElementById('editEmail').value.trim();
+            userProfile.phone    = document.getElementById('editPhone').value.trim();
+
+            if (window._pendingProfilePic) {
+                userProfile.profilePic    = window._pendingProfilePic;
+                window._pendingProfilePic = null;
+            }
+
+            localStorage.setItem(`profile_${currentUser}`, JSON.stringify(userProfile));
+            cancelProfileEdit();
+            loadDashboardData();
+            // Success toast
+            const toast = document.createElement('div');
+            toast.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#28a745;color:white;padding:14px 22px;border-radius:12px;font-weight:600;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.2);';
+            toast.innerHTML = '<i class="fas fa-check-circle me-2"></i>Profile updated successfully!';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // ─── ADDRESSES ────────────────────────────────────────────────────────────
+
+        function loadAddresses() {
+            const container = document.getElementById('addressContainer');
+            if (!userProfile.addresses || userProfile.addresses.length === 0) {
+                container.innerHTML = `<div class="text-center py-5"><i class="fas fa-map-marker-alt" style="font-size: 4rem; color: #ddd;"></i><h5 class="text-muted mt-3">No addresses saved</h5></div>`;
+                return;
+            }
+            container.innerHTML = userProfile.addresses.map((addr, idx) => `
+                <div class="address-card ${addr.isDefault ? 'default' : ''}">
+                    ${addr.isDefault ? '<div class="address-badge"><i class="fas fa-star me-1"></i>DEFAULT</div>' : ''}
+                    <div class="address-type">${addr.type}</div>
+                    <div class="address-text">${addr.address}</div>
+                    <small class="text-muted">Phone: ${addr.phone}</small>
+                    <div class="address-actions">
+                        <button class="btn-sm-action btn-sm-delete" onclick="deleteAddress(${idx})"><i class="fas fa-trash-alt me-1"></i>Delete</button>
+                        ${!addr.isDefault ? `<button class="btn-sm-action btn-sm-edit" onclick="setDefaultAddress(${idx})"><i class="fas fa-star me-1"></i>Set Default</button>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showAddressModal() {
+            document.getElementById('addressForm').reset();
+            new bootstrap.Modal(document.getElementById('addressModal')).show();
+        }
+
+        function saveAddress() {
+            const type = document.getElementById('addressType').value;
+            const address = document.getElementById('addressText').value.trim();
+            const phone = document.getElementById('addressPhone').value.trim();
+            const isDefault = document.getElementById('setDefault').checked;
+            if (!address || !phone) return alert('Please fill all fields');
+            if (!userProfile.addresses) userProfile.addresses = [];
+            if (isDefault) userProfile.addresses.forEach(a => a.isDefault = false);
+            userProfile.addresses.push({ type, address, phone, isDefault });
+            localStorage.setItem(`profile_${currentUser}`, JSON.stringify(userProfile));
+            bootstrap.Modal.getInstance(document.getElementById('addressModal')).hide();
+            loadAddresses();
+        }
+
+        function deleteAddress(idx) {
+            if (confirm('Delete this address?')) {
+                userProfile.addresses.splice(idx, 1);
+                localStorage.setItem(`profile_${currentUser}`, JSON.stringify(userProfile));
+                loadAddresses();
+            }
+        }
+
+        function setDefaultAddress(idx) {
+            userProfile.addresses.forEach(a => a.isDefault = false);
+            userProfile.addresses[idx].isDefault = true;
+            localStorage.setItem(`profile_${currentUser}`, JSON.stringify(userProfile));
+            loadAddresses();
+        }
+
+        function reorderItems(idx) {
+            orderHistory[idx].items.forEach(item => {
+                const existing = cart.find(c => c.id === item.id);
+                if (existing) existing.quantity += item.quantity;
+                else cart.push({ ...item });
+            });
+            saveCart();
+            updateCartBadge();
+            alert('Items added to cart!');
+        }
+
+        function cancelOrder(idx) {
+            if (confirm('Cancel this order?')) {
+                orderHistory[idx].status = 'Cancelled';
+                localStorage.setItem(`orders_${currentUser}`, JSON.stringify(orderHistory));
+                loadDashboardData();
+                switchTab('cancelled', document.getElementById('tabBtnCancelled'));
+            }
+        }
+
+        function clearCancelledHistory() {
+            if (confirm('Clear all cancelled orders?')) {
+                orderHistory = orderHistory.filter(o => o.status !== 'Cancelled');
+                localStorage.setItem(`orders_${currentUser}`, JSON.stringify(orderHistory));
+                loadDashboardData();
+            }
+        }
+
+        function clearAllHistory() {
+            if (confirm('Clear all order history?')) {
+                orderHistory = [];
+                localStorage.setItem(`orders_${currentUser}`, JSON.stringify(orderHistory));
+                loadDashboardData();
+            }
+        }
+
+        // ─── PRODUCTS ─────────────────────────────────────────────────────────────
+
+        function loadProducts() {
+            const products = [
+                {id:1,n:'Apple',p:180.00,img:'/static/products/fruits/apple.jfif',c:'fruits'},
+                {id:2,n:'Pineapple',p:100.00,img:'/static/products/fruits/pine.jfif',c:'fruits'},
+                {id:3,n:'Avocado',p:150.00,img:'/static/products/fruits/avo.jfif',c:'fruits'},
+                {id:4,n:'Mango',p:150.00,img:'/static/products/fruits/mango.jfif',c:'fruits'},
+                {id:5,n:'Banana',p:100.00,img:'/static/products/fruits/banana.jfif',c:'fruits'},
+                {id:6,n:'Oranges',p:120.00,img:'/static/products/fruits/oranges.jfif',c:'fruits'},
+                {id:7,n:'Strawberry',p:200.00,img:'/static/products/fruits/straw.jfif',c:'fruits'},
+                {id:8,n:'Watermelon',p:80.00,img:'/static/products/fruits/watermelon.jfif',c:'fruits'},
+                {id:9,n:'Fresh Milk',p:180.00,img:'/static/products/dairy/milk.jfif',c:'dairy'},
+                {id:10,n:'Eggs',p:200.00,img:'/static/products/dairy/eggs.jfif',c:'dairy'},
+                {id:11,n:'Breast',p:200.00,img:'/static/products/meats/brest.jfif',c:'meats'},
+                {id:12,n:'Beef',p:300.00,img:'/static/products/meats/beef.jfif',c:'meats'},
+                {id:13,n:'Bacon',p:290.00,img:'/static/products/meats/bacon.jfif',c:'meats'},
+                {id:14,n:'Chicken',p:200.00,img:'/static/products/meats/Chicken.jfif',c:'meats'},
+                {id:15,n:'Sausage',p:300.00,img:'/static/products/meats/sausage.jfif',c:'meats'},
+                {id:16,n:'Steak',p:500.00,img:'/static/products/meats/steak.jfif',c:'meats'},
+                {id:17,n:'Wagyu Beef',p:400.00,img:'/static/products/meats/wagyu.jfif',c:'meats'},
+                {id:18,n:'Wings Chicken',p:250.00,img:'/static/products/meats/wings.jfif',c:'meats'},
+                {id:19,n:'Bell Pepper',p:90.00,img:'/static/products/vegetables/bell.jpg',c:'vegetables'},
+                {id:20,n:'Broccoli',p:100.00,img:'/static/products/vegetables/brocoli.jfif',c:'vegetables'},
+                {id:21,n:'Cabbage',p:100.00,img:'/static/products/vegetables/cab.jfif',c:'vegetables'},
+                {id:22,n:'Corn',p:120.00,img:'/static/products/vegetables/corn.jfif',c:'vegetables'},
+                {id:23,n:'Cucumber',p:90.00,img:'/static/products/vegetables/cucumber.jfif',c:'vegetables'},
+                {id:24,n:'Carrots',p:90.00,img:'/static/products/vegetables/carrots.jfif',c:'vegetables'},
+                {id:25,n:'Lettuce',p:90.00,img:'/static/products/vegetables/lettuce.jfif',c:'vegetables'},
+                {id:26,n:'Mix Vegetables',p:120.00,img:'/static/products/vegetables/mix.jfif',c:'vegetables'},
+                {id:27,n:'Potato',p:90.00,img:'/static/products/vegetables/potato.jfif',c:'vegetables'},
+                {id:28,n:'Coca Cola',p:400.00,img:'/static/products/drinks/coke.jfif',c:'drinks'},
+                {id:29,n:'Fanta',p:350.00,img:'/static/products/drinks/fanta.jfif',c:'drinks'},
+                {id:30,n:'Juice Apple',p:300.00,img:'/static/products/drinks/juice apple.jfif',c:'drinks'},
+                {id:31,n:'Pepsi',p:30.00,img:'/static/products/drinks/pepsi.jpg',c:'drinks'},
+                {id:32,n:'Gatorade',p:20.00,img:'/static/products/drinks/gatorade.jpg',c:'drinks'},
+                {id:33,n:'Sprite',p:30.00,img:'/static/products/drinks/sprite.jfif',c:'drinks'},
+                {id:34,n:'Mountain Dew',p:20.00,img:'/static/products/drinks/mountain.jpg',c:'drinks'},
+                {id:35,n:'Milkis',p:20.00,img:'/static/products/drinks/milkis.jpg',c:'drinks'},
+                {id:36,n:'Mogo',p:35.00,img:'/static/products/drinks/mogo.png',c:'drinks'},
+                {id:37,n:'Cadbury Chocolate',p:120.00,img:'/static/products/sweets/cad.jpg',c:'sweets'},
+                {id:38,n:'Hersheys',p:80.00,img:'/static/products/sweets/her.jpg',c:'sweets'},
+                {id:39,n:'Kinder Joy',p:100.00,img:'/static/products/sweets/kinder.jpg',c:'sweets'},
+                {id:40,n:'M & M',p:80.00,img:'/static/products/sweets/m.jpg',c:'sweets'},
+                {id:41,n:'Nutella',p:320.00,img:'/static/products/sweets/nutella.jfif',c:'sweets'},
+                {id:42,n:'Oreo',p:30.00,img:'/static/products/sweets/oreo.jpg',c:'sweets'},
+                {id:43,n:'Skittles',p:20.00,img:'/static/products/sweets/skittles.jpg',c:'sweets'},
+                {id:44,n:'Snickers',p:30.00,img:'/static/products/sweets/snickers.jpg',c:'sweets'},
+                {id:45,n:'Garlic',p:80.00,img:'/static/products/vegetables/garlic.jpg',c:'vegetables'},
+                {id:46,n:'Onion',p:90.00,img:'/static/products/vegetables/onion.jpg',c:'vegetables'},
+                {id:47,n:'Butter',p:100.00,img:'/static/products/dairy/butter.jpg',c:'dairy'},
+                {id:48,n:'Mozarella Cheese',p:190.00,img:'/static/products/dairy/cheese.jpg',c:'dairy'},
+                {id:49,n:'Cream Cheese',p:220.00,img:'/static/products/dairy/cream.jpg',c:'dairy'},
+                {id:50,n:'Whipping Cream',p:300.00,img:'/static/products/dairy/whipping.jpg',c:'dairy'},
+                {id:51,n:'Greek Yogurt',p:60.00,img:'/static/products/dairy/yogurt.jpg',c:'dairy'},
+            ];
+            allProducts = products.map(p => ({ id: p.id, name: p.n, price: p.p, image: p.img, category: p.c }));
+            displayProducts(allProducts);
+        }
+
+        function displayProducts(products) {
+            const grid = document.getElementById('productGrid');
+            if (products.length === 0) {
+                grid.innerHTML = '<div class="col-12 text-center py-5"><p class="text-muted">No products found.</p></div>';
+                return;
+            }
+            grid.innerHTML = products.map(p => `
+                <div class="col-lg-3 col-md-4 col-6 mb-4">
+                    <div class="card product-card h-100 shadow-sm p-3">
+                        <img src="${p.image}" class="card-img-top" style="height:140px; object-fit:contain;" onerror="this.onerror=null;this.src='https://picsum.photos/seed/${p.id}/200';">
+                        <div class="card-body d-flex flex-column p-0 text-center mt-3">
+                            <h6 class="fw-bold mb-1">${p.name}</h6>
+                            <div class="text-success fw-bold mb-3">₱${p.price.toFixed(2)}</div>
+                            <div class="qty-container">
+                                <div class="qty-btn" onclick="updateQtyUI(${p.id}, -1)"><i class="fas fa-minus"></i></div>
+                                <div class="qty-display" id="qty-${p.id}">1</div>
+                                <div class="qty-btn" onclick="updateQtyUI(${p.id}, 1)"><i class="fas fa-plus"></i></div>
+                            </div>
+                            <button class="btn-add-cart mt-auto" onclick="addToCart(${p.id}, this)">
+                                <i class="fas fa-cart-plus"></i> Add to Cart
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateQtyUI(id, delta) {
+            const display = document.getElementById(`qty-${id}`);
+            let val = parseInt(display.innerText) + delta;
+            if (val < 1) val = 1;
+            display.innerText = val;
+        }
+
+        function addToCart(id, btn) {
+            const product = allProducts.find(p => p.id === id);
+            const quantity = parseInt(document.getElementById(`qty-${id}`).innerText);
+            const existingItem = cart.find(item => item.id === id);
+            if (existingItem) existingItem.quantity += quantity;
+            else cart.push({ ...product, quantity });
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check"></i> Added!';
+            btn.style.background = "#28a745";
+            saveCart();
+            updateCartBadge();
+            setTimeout(() => { btn.innerHTML = originalHtml; btn.style.background = ""; }, 1200);
+        }
+
+        function updateCartBadge() {
+            const badge = document.getElementById('cartBadge');
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            badge.innerText = totalItems;
+            badge.style.display = totalItems > 0 ? 'block' : 'none';
+        }
+
+        function refreshCartContents() {
+            const cartList = document.getElementById('cartList');
+            const cartTotal = document.getElementById('cartTotal');
+            if (cart.length === 0) {
+                cartList.innerHTML = '<div class="text-center py-5"><i class="fas fa-shopping-bag display-1 text-muted opacity-50 mb-4"></i><h5 class="text-muted">Your cart is empty</h5></div>';
+                cartTotal.innerText = '₱0.00';
+                return;
+            }
+            let total = 0;
+            cartList.innerHTML = cart.map((item, index) => {
+                const subtotal = item.price * item.quantity;
+                total += subtotal;
+                return `
+                    <div class="d-flex align-items-center mb-4 p-3 border rounded-3">
+                        <img src="${item.image}" class="cart-item-img me-3 shadow-sm" onerror="this.src='https://picsum.photos/seed/${item.id}/60'">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1 fw-bold">${item.name}</h6>
+                            <small class="text-muted">₱${item.price.toFixed(2)}</small>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <button style="width: 30px; height: 30px; border: 1px solid #ccc; background: white; border-radius: 4px; cursor: pointer;" onclick="decreaseQty(${index}); this.blur();">-</button>
+                            <span style="width: 40px; text-align: center; font-weight: 600;">${item.quantity}</span>
+                            <button style="width: 30px; height: 30px; border: 1px solid #ccc; background: white; border-radius: 4px; cursor: pointer;" onclick="increaseQty(${index}); this.blur();">+</button>
+                        </div>
+                        <div class="fw-bold text-success fs-5 me-3">₱${subtotal.toFixed(2)}</div>
+                        <button class="btn btn-sm btn-outline-danger rounded-circle p-2" onclick="removeItem(${index})"><i class="fas fa-trash"></i></button>
+                    </div>
+                `;
+            }).join('');
+            cartTotal.innerText = `₱${total.toFixed(2)}`;
+        }
+
+        function openCart() {
+            refreshCartContents();
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('cartModal')).show();
+        }
+
+        function increaseQty(index) { cart[index].quantity += 1; saveCart(); updateCartBadge(); refreshCartContents(); }
+        function decreaseQty(index) { if (cart[index].quantity > 1) { cart[index].quantity -= 1; saveCart(); updateCartBadge(); refreshCartContents(); } }
+        function removeItem(index) { cart.splice(index, 1); saveCart(); updateCartBadge(); refreshCartContents(); }
+        function saveCart() { localStorage.setItem(`cart_${currentUser}`, JSON.stringify(cart)); }
+
+        function filterProducts(cat, btn) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            displayProducts(cat === 'all' ? allProducts : allProducts.filter(p => p.category === cat));
+        }
+
+        // ─── CHECKOUT ─────────────────────────────────────────────────────────────
+
+        function checkout() {
+            if (cart.length === 0) return alert("Your cart is empty!");
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            document.getElementById('summarySubtotal').innerText = `₱${subtotal.toFixed(2)}`;
+            document.getElementById('summaryTotal').innerText = `₱${(subtotal + 50).toFixed(2)}`;
+            document.getElementById('checkoutForm').reset();
+            const cartModalEl = document.getElementById('cartModal');
+            cartModalEl.addEventListener('hidden.bs.modal', function openCheckout() {
+                cartModalEl.removeEventListener('hidden.bs.modal', openCheckout);
+                new bootstrap.Modal(document.getElementById('checkoutModal')).show();
+            });
+            bootstrap.Modal.getOrCreateInstance(cartModalEl).hide();
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                document.cookie.split(';').forEach(cookie => {
+                    cookie = cookie.trim();
+                    if (cookie.startsWith(name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    }
+                });
+            }
+            return cookieValue;
+        }
+
+        async function processOrder() {
+            const name = document.getElementById('customerName').value.trim();
+            const phone = document.getElementById('phoneNumber').value.trim();
+            const address = document.getElementById('deliveryAddress').value.trim();
+            const method = document.getElementById('paymentMethod').value;
+            if (!name || !phone || !address) { alert("Please fill in all fields!"); return; }
+
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const totalToPay = subtotal + 50;
+
+            const newOrder = {
+                orderId: "#ORD-" + Math.floor(1000 + Math.random() * 9000),
+                customerName: name,
+                phoneNumber: phone,
+                date: new Date().toLocaleDateString(),
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                address: address,
+                paymentMethod: method,
+                items: [...cart],
+                total: totalToPay,
+                status: (method === 'cod') ? 'Pending' : 'Awaiting Payment'
+            };
+
+            if (method === 'gcash' || method === 'card') {
+                const btn = document.getElementById('placeOrderBtn');
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+                document.getElementById('paymentLoadingOverlay').classList.add('show');
+                try {
+                    const response = await fetch('/api/checkout/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                        body: JSON.stringify({ order_details: newOrder, total: totalToPay })
+                    });
+                    if (!response.ok) { const errText = await response.text(); throw new Error(`Server error ${response.status}: ${errText}`); }
+                    const data = await response.json();
+                    if (data.checkout_url) {
+                        orderHistory.unshift(newOrder);
+                        localStorage.setItem(`orders_${currentUser}`, JSON.stringify(orderHistory));
+                        cart = []; saveCart(); updateCartBadge();
+                        window.location.href = data.checkout_url;
+                    } else {
+                        throw new Error(data.error || data.detail || "No checkout_url returned from server.");
+                    }
+                } catch (error) {
+                    console.error("Payment Error:", error);
+                    document.getElementById('paymentLoadingOverlay').classList.remove('show');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-lock me-2"></i>Place Order Now';
+                    alert(`⚠️ Payment failed:\n\n${error.message}\n\nPlease try again or use Cash on Delivery.`);
+                }
+            } else {
+                orderHistory.unshift(newOrder);
+                localStorage.setItem(`orders_${currentUser}`, JSON.stringify(orderHistory));
+                cart = []; saveCart(); updateCartBadge();
+                const checkoutModalEl = document.getElementById('checkoutModal');
+                checkoutModalEl.addEventListener('hidden.bs.modal', function afterClose() {
+                    checkoutModalEl.removeEventListener('hidden.bs.modal', afterClose);
+                    alert("🎉 Order placed successfully! (Cash on Delivery)");
+                    showDashboard();
+                });
+                bootstrap.Modal.getInstance(checkoutModalEl).hide();
+            }
+        }
+
+        // ─── ORDER TRACKING ────────────────────────────────────────────────────────
+
+        function getTrackingTimeline(order) {
+            const base = new Date(order.date + ' ' + order.time);
+            const events = [];
+            events.push({ date: order.date, time: order.time, text: 'Order placed successfully.', latest: false });
+            if (order.status === 'Pending' || order.status === 'Awaiting Payment') {
+                const d1 = new Date(base.getTime() + 2 * 3600000);
+                events.push({ date: d1.toLocaleDateString(), time: d1.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Seller is preparing your parcel.', latest: false });
+                const d2 = new Date(base.getTime() + 5 * 3600000);
+                events.push({ date: d2.toLocaleDateString(), time: d2.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Parcel has been received at drop-off point.', latest: true });
+            } else if (order.status === 'Shipped') {
+                const d1 = new Date(base.getTime() + 2*3600000);  events.push({ date: d1.toLocaleDateString(), time: d1.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Seller is preparing your parcel.', latest: false });
+                const d2 = new Date(base.getTime() + 5*3600000);  events.push({ date: d2.toLocaleDateString(), time: d2.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Parcel received at drop-off point.', latest: false });
+                const d3 = new Date(base.getTime() + 18*3600000); events.push({ date: d3.toLocaleDateString(), time: d3.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Parcel arrived at sorting facility.', latest: false });
+                const d4 = new Date(base.getTime() + 30*3600000); events.push({ date: d4.toLocaleDateString(), time: d4.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'The order is in transit to the next location.', latest: true });
+            } else if (order.status === 'Out for Delivery') {
+                const d1 = new Date(base.getTime() + 2*3600000);  events.push({ date: d1.toLocaleDateString(), time: d1.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Seller is preparing your parcel.', latest: false });
+                const d2 = new Date(base.getTime() + 5*3600000);  events.push({ date: d2.toLocaleDateString(), time: d2.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Parcel received at drop-off point.', latest: false });
+                const d3 = new Date(base.getTime() + 18*3600000); events.push({ date: d3.toLocaleDateString(), time: d3.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Parcel departed from sorting facility.', latest: false });
+                const d4 = new Date(base.getTime() + 36*3600000); events.push({ date: d4.toLocaleDateString(), time: d4.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Out for delivery — rider is on the way to you!', latest: true });
+            } else if (order.status === 'Delivered') {
+                const d1 = new Date(base.getTime() + 2*3600000);  events.push({ date: d1.toLocaleDateString(), time: d1.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Seller is preparing your parcel.', latest: false });
+                const d2 = new Date(base.getTime() + 5*3600000);  events.push({ date: d2.toLocaleDateString(), time: d2.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Parcel received at drop-off point.', latest: false });
+                const d3 = new Date(base.getTime() + 18*3600000); events.push({ date: d3.toLocaleDateString(), time: d3.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Parcel arrived at sorting facility.', latest: false });
+                const d4 = new Date(base.getTime() + 30*3600000); events.push({ date: d4.toLocaleDateString(), time: d4.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Out for delivery.', latest: false });
+                const d5 = new Date(base.getTime() + 48*3600000); events.push({ date: d5.toLocaleDateString(), time: d5.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: '✅ Parcel delivered successfully. Thank you!', latest: true });
+            }
+            return events.reverse();
+        }
+
+        function getStepState(order) {
+            const map = {
+                'Pending':          { placed:'active', shipped:'',       out:'',       delivered:'',       lines:[false,false,false] },
+                'Awaiting Payment': { placed:'active', shipped:'',       out:'',       delivered:'',       lines:[false,false,false] },
+                'Shipped':          { placed:'done',   shipped:'active', out:'',       delivered:'',       lines:[true, false,false] },
+                'Out for Delivery': { placed:'done',   shipped:'done',   out:'active', delivered:'',       lines:[true, true, false] },
+                'Delivered':        { placed:'done',   shipped:'done',   out:'done',   delivered:'active', lines:[true, true, true]  },
+            };
+            return map[order.status] || map['Pending'];
+        }
+
+        function getEstimatedDate(order) {
+            const base = new Date(order.date);
+            const from = new Date(base.getTime() + 3 * 86400000);
+            const to   = new Date(base.getTime() + 7 * 86400000);
+            const opts = { month: 'short', day: 'numeric' };
+            return `${from.toLocaleDateString('en-PH', opts)} – ${to.toLocaleDateString('en-PH', opts)}`;
+        }
+
+        function openTracking(idx) {
+            const order = orderHistory[idx];
+            if (!order) return;
+            document.getElementById('trackingOrderId').textContent = order.orderId;
+            document.getElementById('trackingEstDate').textContent = getEstimatedDate(order);
+            if (!order.trackingNumber) {
+                order.trackingNumber = 'PH' + Math.floor(1000000000000 + Math.random() * 9000000000000);
+                localStorage.setItem(`orders_${currentUser}`, JSON.stringify(orderHistory));
+            }
+            document.getElementById('trackingNumber').textContent = order.trackingNumber;
+            const state = getStepState(order);
+            document.getElementById('tstep-placed').className    = 'tracking-step ' + state.placed;
+            document.getElementById('tstep-shipped').className   = 'tracking-step ' + state.shipped;
+            document.getElementById('tstep-out').className       = 'tracking-step ' + state.out;
+            document.getElementById('tstep-delivered').className = 'tracking-step ' + state.delivered;
+            document.getElementById('tline-1').className = 'tstep-line ' + (state.lines[0] ? 'done' : state.placed  === 'active' ? 'active' : '');
+            document.getElementById('tline-2').className = 'tstep-line ' + (state.lines[1] ? 'done' : state.shipped === 'active' ? 'active' : '');
+            document.getElementById('tline-3').className = 'tstep-line ' + (state.lines[2] ? 'done' : state.out     === 'active' ? 'active' : '');
+            const badge = document.getElementById('courierStatusBadge');
+            const statusMap = { 'Pending':'pending','Awaiting Payment':'pending','Shipped':'shipped','Out for Delivery':'out','Delivered':'delivered' };
+            badge.textContent = order.status;
+            badge.className = 'courier-status-badge ' + (statusMap[order.status] || 'pending');
+            const events = getTrackingTimeline(order);
+            document.getElementById('trackingTimeline').innerHTML = events.map(e => `
+                <div class="timeline-item ${e.latest ? 'latest' : ''}">
+                    <div class="timeline-time">
+                        <div class="timeline-date">${e.date.split('/').slice(0,2).join('/')}</div>
+                        <div class="timeline-hour">${e.time}</div>
+                    </div>
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-text">${e.text}</div>
+                </div>
+            `).join('');
+            new bootstrap.Modal(document.getElementById('trackingModal')).show();
+        }
+    </script>
+</body>
+</html>
