@@ -650,14 +650,16 @@
                     <div class="mb-3">
                         <label class="form-label fw-bold small mb-2 d-flex justify-content-between align-items-center">
                             Delivery Address
+                        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addressModal"> + Add New    
                             </button>
                         </label>
                         
                         <!-- Address Dropdown -->
                         <select class="form-select" id="savedAddresses" onchange="loadSelectedAddress()">
                             <option value="">Select saved address or type new</option>
-                            <!-- Addresses populated by JS -->
+
                         </select>
+                        
                         
                         <!-- Manual Address Input (shows when no address selected) -->
                         <textarea class="form-control mt-2" id="deliveryAddress" rows="2" 
@@ -1205,21 +1207,6 @@
 
         // ─── ADDRESSES ────────────────────────────────────────────────────────────
 
-        function loadSavedAddresses() {
-    const addresses = userProfile.addresses || [];
-    const select = document.getElementById('savedAddresses');
-    
-    if (!select) return; // Safety check
-    
-    select.innerHTML = '<option value="">Choose saved address</option>';
-    
-    addresses.forEach((addr, idx) => {
-        const option = document.createElement('option');
-        option.value = idx;
-        option.textContent = `${addr.isDefault ? '★ ' : ''}${addr.type}: ${addr.address.substring(0, 40)}${addr.address.length > 40 ? '...' : ''}`;
-        select.appendChild(option);
-    });
-}
 
         function showAddressModal() {
             document.getElementById('addressForm').reset();
@@ -1868,10 +1855,10 @@ function loadSavedAddresses() {
     const addresses = JSON.parse(localStorage.getItem(`addresses_${currentUser}`) || '[]');
     const select = document.getElementById('savedAddresses');
     select.innerHTML = '<option value="">Select saved address or type new</option>';
-    
+
     addresses.forEach((address, index) => {
         const option = document.createElement('option');
-        option.value = index;
+        option.value = index;  // using index as key; works for now
         option.textContent = `${address.type}: ${address.fullAddress.substring(0, 40)}${address.fullAddress.length > 40 ? '...' : ''}`;
         select.appendChild(option);
     });
@@ -1881,16 +1868,20 @@ function loadSavedAddresses() {
 function loadSelectedAddress() {
     const select = document.getElementById('savedAddresses');
     const textarea = document.getElementById('deliveryAddress');
-    
+    const phoneInput = document.getElementById('phoneNumber');  // make sure this ID exists
+
     if (select.value === '') {
         textarea.value = '';
-        textarea.classList.remove('d-none');
+        phoneInput.value = '';
         return;
     }
-    
+
     const addresses = JSON.parse(localStorage.getItem(`addresses_${currentUser}`) || '[]');
     const address = addresses[select.value];
-    textarea.value = `${address.fullAddress} (${address.type})`;
+    if (address) {
+        textarea.value = address.fullAddress;
+        phoneInput.value = address.phone;
+    }
 }
 
 // Save new address from addressModal
@@ -1899,12 +1890,12 @@ function saveAddress() {
     const addressText = document.getElementById('addressText').value.trim();
     const phone = document.getElementById('addressPhone').value.trim();
     const setDefault = document.getElementById('setDefault').checked;
-    
+
     if (!type || !addressText || !phone) {
         showToast('Please fill all fields!', 'error');
         return;
     }
-    
+
     const addresses = JSON.parse(localStorage.getItem(`addresses_${currentUser}`) || '[]');
     const newAddress = {
         id: Date.now(),
@@ -1914,15 +1905,13 @@ function saveAddress() {
         isDefault: setDefault,
         createdAt: new Date().toLocaleDateString()
     };
-    
-    addresses.unshift(newAddress); // Add to top
+
+    addresses.unshift(newAddress);
     localStorage.setItem(`addresses_${currentUser}`, JSON.stringify(addresses));
-    
+
     showToast('Address saved!', 'success');
     bootstrap.Modal.getInstance(document.getElementById('addressModal')).hide();
-    
-    // Refresh checkout addresses
-    loadSavedAddresses();
+    loadSavedAddresses();  // reload dropdown
 }
 
 function saveCheckoutAddress(name, phone, addressText) {
