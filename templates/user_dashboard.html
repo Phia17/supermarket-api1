@@ -590,7 +590,7 @@
 
     <!-- Cart Modal -->
     <div class="modal fade" id="cartModal" tabindex="-1">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-dialog modal-md modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title fw-bold"><i class="fas fa-shopping-basket me-2"></i>My Cart</h5>
@@ -605,7 +605,7 @@
                     </div>
                 </div>
                 <div class="modal-footer border-0">
-                    <button class="btn btn-primary w-100 py-3 rounded-pill fw-bold fs-5" onclick="checkout()">
+                    <button class="btn btn-primary w-100 py-2 rounded-pill" onclick="checkout()" style="font-size: 1rem;">
                         <i class="fas fa-credit-card me-2"></i>Proceed to Checkout
                     </button>
                 </div>
@@ -989,11 +989,15 @@
         const statusClass = order.status === 'Awaiting Payment' ? 'awaiting' : order.status.toLowerCase().replace(/ /g, '-');
         const statusBadgeClass = order.status === 'Awaiting Payment' ? 'status-awaiting' : `status-${order.status.toLowerCase()}`;
         const statusIcon = {
-            'Pending': 'fa-clock', 'Awaiting Payment': 'fa-hourglass-half',
-            'Delivered': 'fa-check-circle', 'Cancelled': 'fa-times-circle',
-            'Payment Confirmed': 'fa-check', 
-            'Shipped': 'fa-truck', 'Out for Delivery': 'fa-map-marker-alt'
-        }[order.status] || 'fa-circle';
+    'Pending': 'fa-clock',
+    'Awaiting Payment': 'fa-hourglass-half',
+    'Delivered': 'fa-check-circle',
+    'Cancelled': 'fa-times-circle',
+    'Payment Confirmed (GCash)': 'fa-check', 
+    'Payment Confirmed (Card)': 'fa-check',  // ← match actual value
+    'Shipped': 'fa-truck',
+    'Out for Delivery': 'fa-map-marker-alt'
+}[order.status] || 'fa-circle';
 
         const fixImagePath = (imagePath) => {
         if (!imagePath) return '/static/product/placeholder.jpg';
@@ -1575,28 +1579,25 @@
             return cookieValue;
         }
 
-    async function processOrder() {
-    // Get form data
+async function processOrder() {
     const name = document.getElementById('customerName').value.trim();
     const phone = document.getElementById('phoneNumber').value.trim();
     const address = document.getElementById('deliveryAddress').value.trim();
     const method = document.getElementById('paymentMethod').value;
-    
+
     if (!name || !phone || !address) {
         showToast('Please fill all fields!', 'error');
         return;
     }
-    
-    // ✅ BUTTON SPINNER
+
     const btn = document.getElementById('placeOrderBtn');
     const originalText = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating Order...';
-    
+
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const totalToPay = subtotal + 50;
-    
-    // ✅ DJANGO ORDER DATA
+    const totalToPay = subtotal + 100;
+
     const orderData = {
         cart_items: cart.map(item => ({
             product_id: item.id,
@@ -1609,9 +1610,8 @@
         address: address,
         payment_method: method
     };
-    
+
     try {
-        // ✅ CALL DJANGO API
         const response = await fetch('/api/create-order/', {
             method: 'POST',
             headers: {
@@ -1620,46 +1620,77 @@
             },
             body: JSON.stringify(orderData)
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
-            // ✅ DJANGO ORDER CREATED - Clear cart
-            cart = [];
-            orderHistory.unshift({
-                orderId: data.order_number,
-                customerName: name,
-                phoneNumber: phone,
-                date: new Date().toLocaleDateString(),
-                time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}),
-                address: address,
-                paymentMethod: method,
-                items: [...orderData.cart_items],
+
+    const orderItems = cart.map(item => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        image: item.image,
+        quantity: item.quantity
+    }));
+
+    // Add to order history
+    orderHistory.unshift({
+        orderId: data.order_number,
+        customerName: name,
+        phoneNumber: phone,
+        date: new Date().toLocaleDateString('en-PH', { timeZone: 'Asia/Manila' }),
+        time: new Date().toLocaleTimeString('en-PH', { timeZone: 'Asia/Manila' }),
+        address: address,
+        paymentMethod: method,
+        items: orderItems,
+        total: totalToPay,
+        status: initialStatus,
+        trackingNumber: data.order_number
+    });
+
+    const autoDeliver = setTimeout(() => {
+    const order = orderHistory.find(o => o.orderId === data.order_number);
+    if (order && (order.status === 'Pending' || order.status === 'Awaiting Payment')) {
+        order.status = 'Delivered';
+        localStorage.setItem(`orders_${currentUser}`, JSON.stringify(orderHistory));
+        renderOrderHistory();
+    }
+}, 30000);
+
+    localStorage.setItem(`orders_${currentUser}`, JSON.stringify(orderHistory));
+
+    cart = [];
+
+    localStorage.setItem('cart', JSON.stringify(cart));
+    saveCart();
+    updateCartBadge();
+
+    const checkoutModal = bootstrap.Modal.getInstance(document.getElementById('checkoutModal'));
+    if (checkoutModal) checkoutModal.hide();
+
+    setTimeout(() => {
+        if (method === 'gcash') {
+            showGcashModal({
                 total: totalToPay,
-                status: 'Awaiting Payment'
+                gcash_number: data.gcash_number || '09171234567',
+                gcash_name: data.gcash_name || 'OnlineTindahan'
             });
-            
-            localStorage.setItem(`orders_${currentUser}`, JSON.stringify(orderHistory));
-            saveCart();
-            updateCartBadge();
-            
-            // Close checkout
-            const checkoutModal = bootstrap.Modal.getInstance(document.getElementById('checkoutModal'));
-            if (checkoutModal) checkoutModal.hide();
-            
-            setTimeout(() => {
-                if (method === 'gcash') {
-                    showGcashModal({gcash_number: '09171234567', gcash_name: 'OnlineTindahan'});
-                } else if (method === 'card') {
-                    showCardModal({card_brands: ['Visa', 'Mastercard']});
-                } else {  // COD
-                    btn.innerHTML = '<i class="fas fa-check text-success me-2"></i>Order Complete!';
-                    showToast('COD order created in admin!', 'success');
-                    setTimeout(() => showDashboard(), 1500);
-                }
-            }, 300);
+        } else if (method === 'card') {
+            showCardModal({
+                total: totalToPay,
+                card_brands: data.card_brands || ['Visa', 'Mastercard']
+            });
+        } else {
+            btn.innerHTML = '<i class="fas fa-check text-success me-2"></i>Order Complete!';
+            showToast('COD order created in admin!', 'success');
+            setTimeout(() => showDashboard(), 1500);
         }
-        
+    }, 300);
+        } else {
+            showToast(data.message || 'Order creation failed', 'error');
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
     } catch (error) {
         console.error('Order error:', error);
         showToast('Order failed - try again', 'error');
