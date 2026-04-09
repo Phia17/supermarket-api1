@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SuperMart | Premium Grocery</title>
+    <title>OnlineTindahan</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -322,7 +322,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
         <div class="container">
             <a class="navbar-brand fw-bold fs-3" href="#" onclick="showMainContent()">
-                <i class="fas fa-shopping-cart me-2"></i>SuperMart
+                <i class="fas fa-shopping-cart me-2"></i>OnlineTindahan
             </a>
             <div class="d-flex align-items-center">
                 <a class="nav-link position-relative me-4" href="#" onclick="openCart()">
@@ -355,12 +355,15 @@
     <section class="container main-content" id="mainContent" style="margin-top: 100px;">
         <div class="filter-container justify-content-center">
             <button class="btn btn-outline-primary filter-btn active" onclick="filterProducts('all', this)">All</button>
-            <button class="btn btn-outline-success filter-btn" onclick="filterProducts('fruits', this)">Fruits</button>
-            <button class="btn btn-outline-info filter-btn" onclick="filterProducts('vegetables', this)">Veggie</button>
-            <button class="btn btn-outline-warning filter-btn" onclick="filterProducts('dairy', this)">Dairy</button>
+            <button class="btn btn-outline-success filter-btn" onclick="filterProducts('bath&body', this)">Bath&Body</button>
+            <button class="btn btn-outline-info filter-btn" onclick="filterProducts('vegetables', this)">Vegetables</button>
+            <button class="btn btn-outline-warning filter-btn" onclick="filterProducts('snacks', this)">Snacks</button>
             <button class="btn btn-outline-danger filter-btn" onclick="filterProducts('meats', this)">Meats</button>
             <button class="btn btn-outline-secondary filter-btn" onclick="filterProducts('drinks', this)">Drinks</button>
-            <button class="btn btn-outline-dark filter-btn" onclick="filterProducts('sweets', this)">Sweets</button>
+            <button class="btn btn-outline-warning filter-btn" onclick="filterProducts('sweets', this)">Sweets</button>
+            <button class="btn btn-outline-dark filter-btn" onclick="filterProducts('seasonings', this)">Seasonings</button>
+            <button class="btn btn-outline-success filter-btn" onclick="filterProducts('laundry', this)">Laundry</button>
+            <button class="btn btn-outline-info filter-btn" onclick="filterProducts('canned', this)">Canned</button>
         </div>
         <div class="row mt-4" id="productGrid">
             <div class="col-12 text-center py-5">
@@ -424,9 +427,6 @@
                 </button>
                 <button class="tab-btn" onclick="switchTab('profile', this)">
                     <i class="fas fa-user me-2"></i>Profile Info
-                </button>
-                <button class="tab-btn" onclick="switchTab('address', this)">
-                    <i class="fas fa-map-marker-alt me-2"></i>Addresses
                 </button>
             </div>
 
@@ -585,14 +585,6 @@
                 </div>
             </div><!-- end #profile tab -->
 
-            <!-- Address Tab -->
-            <div class="tab-content" id="address">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h3 class="fw-bold mb-0"><i class="fas fa-map-marker-alt me-2 text-primary"></i>Saved Addresses</h3>
-                    <button class="btn btn-primary fw-bold" onclick="showAddressModal()"><i class="fas fa-plus me-1"></i>Add Address</button>
-                </div>
-                <div id="addressContainer"></div>
-            </div>
         </div>
     </section>
 
@@ -602,7 +594,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title fw-bold"><i class="fas fa-shopping-basket me-2"></i>My Cart</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close btn-close-black" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div id="cartList"></div>
@@ -623,59 +615,81 @@
 
     <!-- Checkout Modal -->
     <div class="modal fade" id="checkoutModal" tabindex="-1">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title fw-bold"><i class="fas fa-check-circle me-2"></i>Complete Your Order</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="checkoutForm" onsubmit="return false;">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Full Name</label>
-                            <input type="text" class="form-control" id="customerName" placeholder="Enter your full name" required>
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white border-0">
+                <h6 class="modal-title fw-bold mb-0"><i class="fas fa-check-circle me-2"></i>Complete Order</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-3 p-md-4">
+                <form id="checkoutForm" onsubmit="return false;">
+                    <!-- Full Name + Phone -->
+                    <div class="row g-2 mb-3">
+                        <div class="col-12">
+                            <label class="form-label fw-bold small mb-1">Full Name</label>
+                            <input type="text" class="form-control form-control-sm" id="customerName" placeholder="John Doe" required>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Phone Number</label>
-                            <input type="tel" class="form-control" id="phoneNumber" placeholder="09XX XXX XXXX" required>
+                    </div>
+                    
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small mb-1">Phone</label>
+                            <input type="tel" class="form-control form-control-sm" id="phoneNumber" placeholder="09123456789" required>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Delivery Address</label>
-                            <textarea class="form-control" id="deliveryAddress" rows="3" placeholder="House number, Street, Barangay, City, Zip Code" required></textarea>
-                        </div>
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Payment Method</label>
-                            <select class="form-select" id="paymentMethod">
-                                <option value="cod">💰 Cash on Delivery</option>
-                                <option value="gcash">📱 GCash</option>
-                                <option value="card">💳 Credit/Debit Card</option>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small mb-1">Payment</label>
+                            <select class="form-select form-select-sm" id="paymentMethod">
+                                <option value="cod">Cash on Delivery</option>
+                                <option value="gcash">GCash</option>
+                                <option value="card">Debit/Credit Card</option>
                             </select>
                         </div>
-                        <div class="p-4 bg-light rounded-4 border">
-                            <div class="row g-3 mb-3">
-                                <div class="col-md-6"><strong>Subtotal:</strong></div>
-                                <div class="col-md-6 text-end" id="summarySubtotal">₱0.00</div>
-                            </div>
-                            <div class="row g-3 mb-3">
-                                <div class="col-md-6"><strong>Delivery Fee:</strong></div>
-                                <div class="col-md-6 text-end">₱50.00</div>
-                            </div>
-                            <hr class="my-3">
-                            <div class="row g-0">
-                                <div class="col-md-6"><h4 class="fw-bold text-primary mb-0">Total to Pay:</h4></div>
-                                <div class="col-md-6 text-end"><h3 class="fw-bold text-success mb-0" id="summaryTotal">₱0.00</h3></div>
-                            </div>
+                    </div>
+                    
+                    <!-- SAVED ADDRESSES DROPDOWN -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small mb-2 d-flex justify-content-between align-items-center">
+                            Delivery Address
+                            </button>
+                        </label>
+                        
+                        <!-- Address Dropdown -->
+                        <select class="form-select" id="savedAddresses" onchange="loadSelectedAddress()">
+                            <option value="">Select saved address or type new</option>
+                            <!-- Addresses populated by JS -->
+                        </select>
+                        
+                        <!-- Manual Address Input (shows when no address selected) -->
+                        <textarea class="form-control mt-2" id="deliveryAddress" rows="2" 
+                                  placeholder="123 Sample St, Brgy Sample, Cebu City" required></textarea>
+                    </div>
+
+                    <!-- Order Summary -->
+                    <div class="p-3 bg-light rounded-3 border small">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal:</span>
+                            <span id="summarySubtotal" class="fw-bold">₱0.00</span>
                         </div>
-                    </form>
-                </div>
-                <div class="modal-footer border-0 p-0">
-                    <button class="btn btn-success w-100 py-4 rounded-0 fw-bold fs-5" id="placeOrderBtn" onclick="processOrder()">
-                        <i class="fas fa-lock me-2"></i>Place Order Now
-                    </button>
-                </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Delivery:</span>
+                            <span>₱50</span>
+                        </div>
+                        <hr class="my-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-bold">Total:</span>
+                            <span class="h6 mb-0 fw-bold text-success" id="summaryTotal">₱0.00</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 p-0">
+                <button class="btn btn-success w-100 py-3 fw-bold" id="placeOrderBtn" onclick="processOrder()">
+                    <i class="fas fa-lock me-2"></i>Place Order Now
+                </button>
             </div>
         </div>
     </div>
+</div>
 
     <!-- Add Address Modal -->
     <div class="modal fade" id="addressModal" tabindex="-1">
@@ -716,6 +730,104 @@
             </div>
         </div>
     </div>
+    
+    <!-- GCash Modal -->
+<div class="modal fade" id="gcashModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 shadow">
+
+            <!-- Header -->
+            <div class="modal-header bg-success text-white rounded-top-4">
+                <h5 class="mb-0">Confirm GCash Payment</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>    
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body p-4 text-center">
+
+                <div class="mb-3">
+                    <i class="fas fa-wallet fa-3x text-success"></i>
+                </div>
+
+                <p class="text-muted mb-1">You are about to send</p>
+
+                <!-- Amount -->
+                <h2 class="fw-bold text-success mb-3">
+                    <span id="gcashTotal">₱0.00</span>
+                </h2>
+
+                <!-- Receiver -->
+                <div class="bg-light p-3 rounded-3 mb-3">
+                    <div class="fw-bold" id="gcashNameDisplay">OnlineTindahan</div>
+                    <div class="text-muted small" id="gcashNumberDisplay">09171234567</div>
+                </div>
+
+                <p class="text-muted small mb-3">
+                    Make sure the number and amount are correct before proceeding.
+                </p>
+
+                <!-- Checkbox -->
+                <div class="form-check text-start">
+                    <input class="form-check-input" type="checkbox" id="confirmCheck">
+                    <label class="form-check-label" for="confirmCheck">
+                        I confirm that I have completed the payment via GCash
+                    </label>
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer border-0 px-4 pb-4">
+                <button class="btn btn-success w-100 rounded-pill"
+                        id="confirmBtn"
+                        disabled
+                        onclick="confirmGcashPayment()">
+                    Confirm Payment
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Card Modal -->
+<div class="modal fade" id="cardModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Debit/Credit Card</h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="alert alert-info mb-4">
+                    <strong>Total: <span id="cardTotal">₱0.00</span></strong><br>
+                    <small>We accept: <span id="cardBrands"></span></small>
+                </div>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label fw-bold">Card Number</label>
+                        <input type="text" class="form-control" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Expiry</label>
+                        <input type="text" class="form-control" id="cardExpiry" placeholder="MM/YY" maxlength="5">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">CVV</label>
+                        <input type="text" class="form-control" id="cardCVV" placeholder="123" maxlength="3">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmCardPayment()">
+                    <span class="spinner-border spinner-border-sm me-2 d-none" id="cardSpinner"></span>
+                    Pay Now
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
     <!-- Order Tracking Modal -->
     <div class="modal fade" id="trackingModal" tabindex="-1">
@@ -761,7 +873,7 @@
                     <div class="courier-card">
                         <div class="courier-logo"><i class="fas fa-shipping-fast"></i></div>
                         <div class="courier-info">
-                            <div class="courier-name">SuperMart Express</div>
+                            <div class="courier-name">OnlineTindahan Express</div>
                             <div class="courier-tracking" id="trackingNumber">—</div>
                         </div>
                         <div class="courier-status-badge" id="courierStatusBadge">Pending</div>
@@ -797,7 +909,7 @@
         // ─── HELPERS ──────────────────────────────────────────────────────────────
 
         function paymentMethodLabel(method) {
-            const map = { cod: '💰 Cash on Delivery', gcash: '📱 GCash', card: '💳 Credit/Debit Card' };
+            const map = { cod: 'Cash on Delivery', gcash: 'GCash', card: 'Credit/Debit Card' };
             return map[method] || method;
         }
 
@@ -873,78 +985,101 @@
 
         // ─── ORDER CARD ───────────────────────────────────────────────────────────
 
-        function renderOrderCard(order, index, showCancel = true) {
-            const statusClass = order.status === 'Awaiting Payment' ? 'awaiting' : order.status.toLowerCase().replace(/ /g, '-');
-            const statusBadgeClass = order.status === 'Awaiting Payment' ? 'status-awaiting' : `status-${order.status.toLowerCase()}`;
-            const statusIcon = {
-                'Pending': 'fa-clock', 'Awaiting Payment': 'fa-hourglass-half',
-                'Delivered': 'fa-check-circle', 'Cancelled': 'fa-times-circle',
-                'Shipped': 'fa-truck', 'Out for Delivery': 'fa-map-marker-alt'
-            }[order.status] || 'fa-circle';
+            function renderOrderCard(order, index, showCancel = true) {
+        const statusClass = order.status === 'Awaiting Payment' ? 'awaiting' : order.status.toLowerCase().replace(/ /g, '-');
+        const statusBadgeClass = order.status === 'Awaiting Payment' ? 'status-awaiting' : `status-${order.status.toLowerCase()}`;
+        const statusIcon = {
+            'Pending': 'fa-clock', 'Awaiting Payment': 'fa-hourglass-half',
+            'Delivered': 'fa-check-circle', 'Cancelled': 'fa-times-circle',
+            'Payment Confirmed': 'fa-check', 
+            'Shipped': 'fa-truck', 'Out for Delivery': 'fa-map-marker-alt'
+        }[order.status] || 'fa-circle';
 
-            return `
-                <div class="order-card ${statusClass}">
-                    <div class="order-card-header">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <span class="order-id-badge">${order.orderId}</span>
-                            <span class="status-badge ${statusBadgeClass}">
-                                <i class="fas ${statusIcon} me-1"></i>${order.status}
-                            </span>
-                        </div>
-                        <small class="text-muted"><i class="fas fa-calendar me-1"></i>${order.date} at ${order.time}</small>
-                    </div>
-                    <div class="order-items-preview">
-                        ${order.items.slice(0, 3).map(item => `
-                            <div class="item-preview">
-                                <div class="item-img"><img src="${item.image}" onerror="this.src='https://picsum.photos/seed/${item.id}/50'"></div>
-                                <div class="item-details flex-grow-1">
-                                    <p class="item-name">${item.name}</p>
-                                    <p class="item-qty">Qty: ${item.quantity}</p>
-                                </div>
-                                <div class="item-price">₱${(item.price * item.quantity).toFixed(2)}</div>
-                            </div>
-                        `).join('')}
-                        ${order.items.length > 3 ? `<small class="text-muted d-block pt-2">+${order.items.length - 3} more items</small>` : ''}
-                    </div>
-                    <div class="order-meta-grid">
-                        <div class="order-meta-item">
-                            <span class="order-meta-label"><i class="fas fa-user me-1"></i>Customer</span>
-                            <span class="order-meta-value">${order.customerName || '—'}</span>
-                        </div>
-                        <div class="order-meta-item">
-                            <span class="order-meta-label"><i class="fas fa-phone me-1"></i>Phone</span>
-                            <span class="order-meta-value">${order.phoneNumber || '—'}</span>
-                        </div>
-                        <div class="order-meta-item" style="grid-column: 1 / -1;">
-                            <span class="order-meta-label"><i class="fas fa-map-marker-alt me-1"></i>Delivery Address</span>
-                            <span class="order-meta-value">${order.address || '—'}</span>
-                        </div>
-                        <div class="order-meta-item">
-                            <span class="order-meta-label"><i class="fas fa-credit-card me-1"></i>Payment</span>
-                            <span class="order-meta-value">${paymentMethodLabel(order.paymentMethod)}</span>
-                        </div>
-                    </div>
-                    <div class="order-total-row">
-                        <span class="order-total-label"><i class="fas fa-receipt me-1"></i>Order Total</span>
-                        <span class="order-total-value">₱${order.total ? order.total.toFixed(2) : '0.00'}</span>
-                    </div>
-                    <div class="order-actions">
-                        ${order.status !== 'Cancelled' ? `
-                        <button class="btn-action btn-track" onclick="openTracking(${index})">
-                            <i class="fas fa-map-marker-alt me-1"></i>Track
-                        </button>` : ''}
-                        <button class="btn-action btn-reorder" onclick="reorderItems(${index})">
-                            <i class="fas fa-redo me-1"></i>Reorder
-                        </button>
-                        ${showCancel && order.status !== 'Cancelled' && order.status !== 'Delivered' ? `
-                        <button class="btn-action btn-cancel" onclick="cancelOrder(${index})">
-                            <i class="fas fa-ban me-1"></i>Cancel
-                        </button>` : ''}
-                    </div>
-                </div>
-            `;
+        const fixImagePath = (imagePath) => {
+        if (!imagePath) return '/static/product/placeholder.jpg';
+        if (imagePath.startsWith('http')) return imagePath;
+        if (imagePath.startsWith('/static/')) return imagePath;
+        if (imagePath.startsWith('static/')) return `/${imagePath}`;
+        if (imagePath.startsWith('products/')) {
+            return `/static/${imagePath}`;
         }
+         if (imagePath.startsWith('/media/')) {
+            return imagePath;
+        }
+        return `/static/product/placeholder.jpg`; 
+    };
 
+    return `
+        <div class="order-card ${statusClass}">
+            <div class="order-card-header">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="order-id-badge">${order.orderId}</span>
+                    <span class="status-badge ${statusBadgeClass}">
+                        <i class="fas ${statusIcon} me-1"></i>${order.status}
+                    </span>
+                </div>
+                <small class="text-muted"><i class="fas fa-calendar me-1"></i>${order.date} at ${order.time}</small>
+            </div>
+            <div class="order-items-preview">
+                ${order.items.slice(0, 3).map(item => {
+                    const imageSrc = fixImagePath(item.image);
+                    return `
+                        <div class="item-row d-flex align-items-start mb-2">
+                            <img src="${imageSrc}" 
+                                 class="cart-item-img me-3 shadow-sm" 
+                                 onerror="this.onerror=null; this.src='/static/product/placeholder.jpg'" 
+                                 style="width:60px; height:60px; object-fit:cover; border-radius:8px;"
+                                 alt="${item.name || 'Product'}">
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1 fw-bold">${item.name}</h6>
+                                <small class="text-muted">₱${item.price.toFixed(2)} × ${item.quantity}</small>
+                            </div>
+                            <div class="text-end">
+                                <div class="h6 mb-0 fw-bold">₱${(item.price * item.quantity).toFixed(2)}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+                ${order.items.length > 3 ? `<small class="text-muted d-block pt-2">+${order.items.length - 3} more items</small>` : ''}
+            </div>
+            <div class="order-meta-grid">
+                <div class="order-meta-item">
+                    <span class="order-meta-label"><i class="fas fa-user me-1"></i>Customer</span>
+                    <span class="order-meta-value">${order.customerName || '—'}</span>
+                </div>
+                <div class="order-meta-item">
+                    <span class="order-meta-label"><i class="fas fa-phone me-1"></i>Phone</span>
+                    <span class="order-meta-value">${order.phoneNumber || '—'}</span>
+                </div>
+                <div class="order-meta-item" style="grid-column: 1 / -1;">
+                    <span class="order-meta-label"><i class="fas fa-map-marker-alt me-1"></i>Delivery Address</span>
+                    <span class="order-meta-value">${order.address || '—'}</span>
+                </div>
+                <div class="order-meta-item">
+                    <span class="order-meta-label"><i class="fas fa-credit-card me-1"></i>Payment</span>
+                    <span class="order-meta-value">${paymentMethodLabel(order.paymentMethod)}</span>
+                </div>
+            </div>
+            <div class="order-total-row">
+                <span class="order-total-label"><i class="fas fa-receipt me-1"></i>Order Total</span>
+                <span class="order-total-value">₱${order.total ? order.total.toFixed(2) : '0.00'}</span>
+            </div>
+            <div class="order-actions">
+                ${order.status !== 'Cancelled' ? `
+                    <button class="btn-action btn-track" onclick="openTracking(${index})">
+                        <i class="fas fa-map-marker-alt me-1"></i>Track
+                    </button>` : ''}
+                <button class="btn-action btn-reorder" onclick="reorderItems(${index})">
+                    <i class="fas fa-redo me-1"></i>Reorder
+                </button>
+                ${showCancel && order.status !== 'Cancelled' && order.status !== 'Delivered' ? `
+                    <button class="btn-action btn-cancel" onclick="cancelOrder(${index})">
+                        <i class="fas fa-ban me-1"></i>Cancel
+                    </button>` : ''}
+            </div>
+        </div>
+    `;
+}
         function loadOrders() {
             const container = document.getElementById('orderHistoryContainer');
             const activeOrders = orderHistory.map((o, i) => ({ order: o, index: i })).filter(({ order }) => order.status !== 'Cancelled');
@@ -1066,25 +1201,21 @@
 
         // ─── ADDRESSES ────────────────────────────────────────────────────────────
 
-        function loadAddresses() {
-            const container = document.getElementById('addressContainer');
-            if (!userProfile.addresses || userProfile.addresses.length === 0) {
-                container.innerHTML = `<div class="text-center py-5"><i class="fas fa-map-marker-alt" style="font-size: 4rem; color: #ddd;"></i><h5 class="text-muted mt-3">No addresses saved</h5></div>`;
-                return;
-            }
-            container.innerHTML = userProfile.addresses.map((addr, idx) => `
-                <div class="address-card ${addr.isDefault ? 'default' : ''}">
-                    ${addr.isDefault ? '<div class="address-badge"><i class="fas fa-star me-1"></i>DEFAULT</div>' : ''}
-                    <div class="address-type">${addr.type}</div>
-                    <div class="address-text">${addr.address}</div>
-                    <small class="text-muted">Phone: ${addr.phone}</small>
-                    <div class="address-actions">
-                        <button class="btn-sm-action btn-sm-delete" onclick="deleteAddress(${idx})"><i class="fas fa-trash-alt me-1"></i>Delete</button>
-                        ${!addr.isDefault ? `<button class="btn-sm-action btn-sm-edit" onclick="setDefaultAddress(${idx})"><i class="fas fa-star me-1"></i>Set Default</button>` : ''}
-                    </div>
-                </div>
-            `).join('');
-        }
+        function loadSavedAddresses() {
+    const addresses = userProfile.addresses || [];
+    const select = document.getElementById('savedAddresses');
+    
+    if (!select) return; // Safety check
+    
+    select.innerHTML = '<option value="">Choose saved address</option>';
+    
+    addresses.forEach((addr, idx) => {
+        const option = document.createElement('option');
+        option.value = idx;
+        option.textContent = `${addr.isDefault ? '★ ' : ''}${addr.type}: ${addr.address.substring(0, 40)}${addr.address.length > 40 ? '...' : ''}`;
+        select.appendChild(option);
+    });
+}
 
         function showAddressModal() {
             document.getElementById('addressForm').reset();
@@ -1092,18 +1223,52 @@
         }
 
         function saveAddress() {
-            const type = document.getElementById('addressType').value;
-            const address = document.getElementById('addressText').value.trim();
-            const phone = document.getElementById('addressPhone').value.trim();
-            const isDefault = document.getElementById('setDefault').checked;
-            if (!address || !phone) return alert('Please fill all fields');
-            if (!userProfile.addresses) userProfile.addresses = [];
-            if (isDefault) userProfile.addresses.forEach(a => a.isDefault = false);
-            userProfile.addresses.push({ type, address, phone, isDefault });
-            localStorage.setItem(`profile_${currentUser}`, JSON.stringify(userProfile));
-            bootstrap.Modal.getInstance(document.getElementById('addressModal')).hide();
-            loadAddresses();
-        }
+    const type = document.getElementById('addressType').value;
+    const address = document.getElementById('addressText').value.trim();
+    const phone = document.getElementById('addressPhone').value.trim();
+    const isDefault = document.getElementById('setDefault').checked;
+    
+    if (!address || !phone) {
+        showToast('Please fill all fields!', 'error');
+        return;
+    }
+    
+    if (!userProfile.addresses) userProfile.addresses = [];
+    
+    // Set new address as default if requested
+    if (isDefault) {
+        userProfile.addresses.forEach(a => a.isDefault = false);
+    }
+    
+    const newAddress = {
+        type,
+        address,
+        phone,
+        isDefault
+    };
+    
+    userProfile.addresses.unshift(newAddress); // Add to top
+    localStorage.setItem(`profile_${currentUser}`, JSON.stringify(userProfile));
+    
+    bootstrap.Modal.getInstance(document.getElementById('addressModal')).hide();
+    
+    // Fill checkout fields + open checkout
+    document.getElementById('customerName').value = userProfile.name || ''; // From profile
+    document.getElementById('phoneNumber').value = newAddress.phone;
+    document.getElementById('deliveryAddress').value = `${newAddress.address} (${newAddress.type})`;
+    
+    // Load addresses dropdown + open checkout
+    loadSavedAddresses();
+    loadOrderSummary(); // Refresh totals
+    
+    // Open checkout modal
+    setTimeout(() => {
+        new bootstrap.Modal(document.getElementById('checkoutModal')).show();
+        showToast('Address saved & loaded to checkout!', 'success');
+    }, 300);
+    
+    loadAddresses(); // Refresh address list
+}
 
         function deleteAddress(idx) {
             if (confirm('Delete this address?')) {
@@ -1160,63 +1325,93 @@
 
         function loadProducts() {
             const products = [
-                {id:1,n:'Apple',p:180.00,img:'/static/products/fruits/apple.jfif',c:'fruits'},
-                {id:2,n:'Pineapple',p:100.00,img:'/static/products/fruits/pine.jfif',c:'fruits'},
-                {id:3,n:'Avocado',p:150.00,img:'/static/products/fruits/avo.jfif',c:'fruits'},
-                {id:4,n:'Mango',p:150.00,img:'/static/products/fruits/mango.jfif',c:'fruits'},
-                {id:5,n:'Banana',p:100.00,img:'/static/products/fruits/banana.jfif',c:'fruits'},
-                {id:6,n:'Oranges',p:120.00,img:'/static/products/fruits/oranges.jfif',c:'fruits'},
-                {id:7,n:'Strawberry',p:200.00,img:'/static/products/fruits/straw.jfif',c:'fruits'},
-                {id:8,n:'Watermelon',p:80.00,img:'/static/products/fruits/watermelon.jfif',c:'fruits'},
-                {id:9,n:'Fresh Milk',p:180.00,img:'/static/products/dairy/milk.jfif',c:'dairy'},
-                {id:10,n:'Eggs',p:200.00,img:'/static/products/dairy/eggs.jfif',c:'dairy'},
-                {id:11,n:'Breast',p:200.00,img:'/static/products/meats/brest.jfif',c:'meats'},
-                {id:12,n:'Beef',p:300.00,img:'/static/products/meats/beef.jfif',c:'meats'},
-                {id:13,n:'Bacon',p:290.00,img:'/static/products/meats/bacon.jfif',c:'meats'},
-                {id:14,n:'Chicken',p:200.00,img:'/static/products/meats/Chicken.jfif',c:'meats'},
-                {id:15,n:'Sausage',p:300.00,img:'/static/products/meats/sausage.jfif',c:'meats'},
-                {id:16,n:'Steak',p:500.00,img:'/static/products/meats/steak.jfif',c:'meats'},
-                {id:17,n:'Wagyu Beef',p:400.00,img:'/static/products/meats/wagyu.jfif',c:'meats'},
-                {id:18,n:'Wings Chicken',p:250.00,img:'/static/products/meats/wings.jfif',c:'meats'},
-                {id:19,n:'Bell Pepper',p:90.00,img:'/static/products/vegetables/bell.jpg',c:'vegetables'},
-                {id:20,n:'Broccoli',p:100.00,img:'/static/products/vegetables/brocoli.jfif',c:'vegetables'},
-                {id:21,n:'Cabbage',p:100.00,img:'/static/products/vegetables/cab.jfif',c:'vegetables'},
-                {id:22,n:'Corn',p:120.00,img:'/static/products/vegetables/corn.jfif',c:'vegetables'},
-                {id:23,n:'Cucumber',p:90.00,img:'/static/products/vegetables/cucumber.jfif',c:'vegetables'},
-                {id:24,n:'Carrots',p:90.00,img:'/static/products/vegetables/carrots.jfif',c:'vegetables'},
-                {id:25,n:'Lettuce',p:90.00,img:'/static/products/vegetables/lettuce.jfif',c:'vegetables'},
-                {id:26,n:'Mix Vegetables',p:120.00,img:'/static/products/vegetables/mix.jfif',c:'vegetables'},
-                {id:27,n:'Potato',p:90.00,img:'/static/products/vegetables/potato.jfif',c:'vegetables'},
-                {id:28,n:'Coca Cola',p:400.00,img:'/static/products/drinks/coke.jfif',c:'drinks'},
-                {id:29,n:'Fanta',p:350.00,img:'/static/products/drinks/fanta.jfif',c:'drinks'},
-                {id:30,n:'Juice Apple',p:300.00,img:'/static/products/drinks/juice apple.jfif',c:'drinks'},
-                {id:31,n:'Pepsi',p:30.00,img:'/static/products/drinks/pepsi.jpg',c:'drinks'},
-                {id:32,n:'Gatorade',p:20.00,img:'/static/products/drinks/gatorade.jpg',c:'drinks'},
-                {id:33,n:'Sprite',p:30.00,img:'/static/products/drinks/sprite.jfif',c:'drinks'},
-                {id:34,n:'Mountain Dew',p:20.00,img:'/static/products/drinks/mountain.jpg',c:'drinks'},
-                {id:35,n:'Milkis',p:20.00,img:'/static/products/drinks/milkis.jpg',c:'drinks'},
-                {id:36,n:'Mogo',p:35.00,img:'/static/products/drinks/mogo.png',c:'drinks'},
-                {id:37,n:'Cadbury Chocolate',p:120.00,img:'/static/products/sweets/cad.jpg',c:'sweets'},
-                {id:38,n:'Hersheys',p:80.00,img:'/static/products/sweets/her.jpg',c:'sweets'},
-                {id:39,n:'Kinder Joy',p:100.00,img:'/static/products/sweets/kinder.jpg',c:'sweets'},
-                {id:40,n:'M & M',p:80.00,img:'/static/products/sweets/m.jpg',c:'sweets'},
-                {id:41,n:'Nutella',p:320.00,img:'/static/products/sweets/nutella.jfif',c:'sweets'},
-                {id:42,n:'Oreo',p:30.00,img:'/static/products/sweets/oreo.jpg',c:'sweets'},
-                {id:43,n:'Skittles',p:20.00,img:'/static/products/sweets/skittles.jpg',c:'sweets'},
-                {id:44,n:'Snickers',p:30.00,img:'/static/products/sweets/snickers.jpg',c:'sweets'},
-                {id:45,n:'Garlic',p:80.00,img:'/static/products/vegetables/garlic.jpg',c:'vegetables'},
-                {id:46,n:'Onion',p:90.00,img:'/static/products/vegetables/onion.jpg',c:'vegetables'},
-                {id:47,n:'Butter',p:100.00,img:'/static/products/dairy/butter.jpg',c:'dairy'},
-                {id:48,n:'Mozarella Cheese',p:190.00,img:'/static/products/dairy/cheese.jpg',c:'dairy'},
-                {id:49,n:'Cream Cheese',p:220.00,img:'/static/products/dairy/cream.jpg',c:'dairy'},
-                {id:50,n:'Whipping Cream',p:300.00,img:'/static/products/dairy/whipping.jpg',c:'dairy'},
-                {id:51,n:'Greek Yogurt',p:60.00,img:'/static/products/dairy/yogurt.jpg',c:'dairy'},
-            ];
-            allProducts = products.map(p => ({ id: p.id, name: p.n, price: p.p, image: p.img, category: p.c }));
+    
+    {id:1,n:'Colgate',p:10.00,img:'products/bath&body/colgate.jfif',c:'bath&body'},
+    {id:2,n:'Closeup',p:10.00,img:'products/bath&body/closeup.jfif',c:'bath&body'},
+    {id:3,n:'Happe',p:10.00,img:'products/bath&body/happe.jfif',c:'bath&body'},
+    {id:4,n:'Sunsilk',p:7.00,img:'products/bath&body/sunsilk.jfif',c:'bath7body'},
+    {id:5,n:'Hana',p:7.00,img:'products/bath&body/hana.jfif',c:'bath&body'},
+    {id:6,n:'Head & Shoulder',p:7.00,img:'products/bath&body/shoulder.jfif',c:'bath&body'},
+    {id:7,n:'Rejoice',p:7.00,img:'products/bath&body/rejoice.jfif',c:'bath&body'},
+    {id:8,n:'Palmolive',p:7.00,img:'products/bath&body/palmolive.jfif',c:'bath&body'},
+    {id:9,n:'Keratin',p:9.00,img:'products/bath&body/keratin.jfif',c:'bath&body'},
+    {id:10,n:'Pantene',p:9.00,img:'products/bath&body/pantene.jfif',c:'bath&body'},
+    {id:11,n:'Creamsilk',p:9.00,img:'products/bath&body/creamsilk.jfif',c:'bath&body'},
+    {id:12,n:'Razor',p:100.00,img:'products/bath&body/razor.jfif',c:'bath&body'},
+    {id:13,n:'Toothbrush',p:60.00,img:'products/bath&body/toothbrush.jfif',c:'bath&body'},
+    {id:14,n:'Safeguard',p:40.00,img:'products/bath&body/safeguard.jpg',c:'bath&body'},
+    {id:15,n:'Beefloaf',p:39.00,img:'products/canned/beefloaf.jfif',c:'canned'},
+    {id:16,n:'Century Tuna',p:40.00,img:'products/canned/century tuna.jfif',c:'canned'},
+    {id:17,n:'Ligo',p:39.00,img:'products/canned/ligo.jfif',c:'canned'},
+    {id:18,n:'Mega Sardines',p:30.00,img:'products/canned/sardinas.jfif',c:'canned'},
+    {id:20,n:'Chuckie',p:20.00,img:'products/drinks/chuckie.jfif',c:'drinks'},
+    {id:21,n:'Coke',p:20.00,img:'products/drinks/cola.jfif',c:'drinks'},
+    {id:22,n:'Delight',p:120.00,img:'products/drinks/delight.jfif',c:'drinks'},
+    {id:23,n:'Gatorade',p:20.00,img:'products/drinks/gatorade.jpg',c:'drinks'},
+    {id:24,n:'Mountain Dew',p:20.00,img:'products/drinks/mountain.jpg',c:'drinks'},
+    {id:25,n:'Pepsi',p:30.00,img:'products/drinks/pepsi.jpg',c:'drinks'},
+    {id:26,n:'Royal',p:20.00,img:'products/drinks/royal.png',c:'drinks'},
+    {id:27,n:'Sprite',p:300.00,img:'products/drinks/sprite.jfif',c:'drinks'},
+    {id:28,n:'Sting',p:20.00,img:'products/drinks/sting.jfif',c:'drinks'},
+    {id:29,n:'Vitamilk',p:25.00,img:'products/drinks/vitamilk.jfif',c:'drinks'},
+    {id:30,n:'Yakult',p:100.00,img:'products/drinks/yakult.jfif',c:'drinks'},
+    {id:31,n:'Mogu Blueberry',p:50.00,img:'products/drinks/mogublue.jfif',c:'drinks'},
+    {id:32,n:'Mogu Grape',p:50.00,img:'products/drinks/mogugrape.jfif',c:'drinks'},
+    {id:33,n:'Mogu Lychee',p:50.00,img:'products/drinks/mogulychee.jfif',c:'drinks'},
+    {id:34,n:'Mogu Mango',p:50.00,img:'products/drinks/mogumango.jfif',c:'drinks'},
+    {id:35,n:'Breeze',p:10.00,img:'products/laundry/breeze.jfif',c:'laundry'},
+    {id:36,n:'Pride',p:10.00,img:'products/laundry/pride.jfif',c:'laundry'},
+    {id:37,n:'Tide',p:10.00,img:'products/laundry/tide1.jfif',c:'laundry'},
+    {id:38,n:'Surf',p:10.00,img:'products/laundry/surf.jfif',c:'laundry'},
+    {id:39,n:'Downy',p:10.00,img:'products/laundry/downy.jfif',c:'laundry'},
+    {id:40,n:'Surf Fabric',p:10.00,img:'products/laundry/surffabri.jfif',c:'laundry'},
+    {id:41,n:'Zonrox',p:60.00,img:'products/laundry/zonrox2.jpg',c:'laundry'},
+    {id:42,n:'Magnolia Chicken',p:200.00,img:'products/meats/chiken.jfif',c:'meats'},
+    {id:43,n:'Hotdog',p:300.00,img:'products/meats/hotdog.jfif',c:'meats'},
+    {id:44,n:'Skinless Longaniza',p:100.00,img:'products/meats/long.jfif',c:'meats'},
+    {id:45,n:'Nuggets',p:300.00,img:'products/meats/nuggets.jfif',c:'meats'},
+    {id:46,n:'Tocino',p:100.00,img:'products/meats/tocino.jfif',c:'meats'},
+    {id:47,n:'Knor',p:50.00,img:'products/seasonings/knor.jpg',c:'seasonings'},
+    {id:48,n:'Magic Sarap',p:40.00,img:'products/seasonings/magic.jpg',c:'seasonings'},
+    {id:49,n:'Soy Sauce',p:60.00,img:'products/seasonings/soy.jfif',c:'seasonings'},
+    {id:50,n:'Vinegar',p:60.00,img:'products/seasonings/vinegar.jfif',c:'seasonings'},
+    {id:51,n:'Bread Pan',p:9.00,img:'products/snacks/bread.jfif',c:'snacks'},
+    {id:52,n:'Cheese Ring',p:9.00,img:'products/snacks/cheese.jfif',c:'snacks'},
+    {id:53,n:'Cheez-it',p:9.00,img:'products/snacks/cheez.jfif',c:'snacks'},
+    {id:54,n:'Dingdong',p:9.00,img:'products/snacks/dingdong.jfif',c:'snacks'},
+    {id:55,n:'Mr.Chips',p:10.00,img:'products/snacks/mrchips.jfif',c:'snacks'},
+    {id:56,n:'Nagaraya',p:15.00,img:'products/snacks/nagaraya.jfif',c:'snacks'},
+    {id:57,n:'Onion Rings',p:9.00,img:'products/snacks/onion.jfif',c:'snacks'},
+    {id:58,n:'Patata',p:9.00,img:'products/snacks/patata.jfif',c:'snacks'},
+    {id:59,n:'Piattos',p:20.00,img:'products/snacks/piattos.jfif',c:'snacks'},
+    {id:60,n:'Potato Fries',p:16.00,img:'products/snacks/potato.jfif',c:'snacks'},
+    {id:61,n:'Roller Coaster',p:17.00,img:'products/snacks/rollercoaster.jfif',c:'snacks'},
+    {id:62,n:'Vcut',p:15.00,img:'products/snacks/vcut.jfif',c:'snacks'},
+    {id:63,n:'Martys Cracklin',p:9.00,img:'products/snacks/martyred.jfif',c:'snacks'},
+    {id:64,n:'Dewberry',p:11.00,img:'products/sweets/dew.jfif',c:'sweets'},
+    {id:65,n:'Knick Knacks',p:12.00,img:'products/sweets/knacks.jfif',c:'sweets'},
+    {id:66,n:'Pillows Choco',p:11.00,img:'products/sweets/pillowchoco.jfif',c:'sweets'},
+    {id:67,n:'Caramel Popcorn',p:20.00,img:'products/sweets/pop.jfif',c:'sweets'},
+    {id:68,n:'Potchi',p:30.00,img:'products/sweets/potchi.png',c:'sweets'},
+    {id:69,n:'Stik-O',p:100.00,img:'products/sweets/Stik-O.jfif',c:'sweets'},
+    {id:70,n:'Pillows Ube',p:11.00,img:'products/sweets/Ube.jfif',c:'sweets'},
+    {id:71,n:'Bell Pepper',p:60.00,img:'products/vegetables/bell.jpg',c:'vegetables'},
+    {id:72,n:'Carrots',p:80.00,img:'products/vegetables/carrots.jfif',c:'vegetables'},
+    {id:73,n:'Cucumber',p:80.00,img:'products/vegetables/cucumber.jfif',c:'vegetables'},
+    {id:74,n:'Garlic',p:30.00,img:'products/vegetables/garlic.jpg',c:'vegetables'},
+    {id:75,n:'Ginger',p:10.00,img: 'products/vegetables/ginger.jfif',c:'vegetables'},
+    {id:76,n:'Green Chili',p:10.00,img:'products/vegetables/green.jfif',c:'vegetables'},
+    {id:77,n:'Onion',p:10.00,img:'products/vegetables/onion.jpg',c:'vegetables'},
+    {id:78,n:'Potato',p:20.00,img:'products/vegetables/potato.jfif',c:'vegetables'},
+    {id:79,n:'Scallions',p:10.00,img:'products/vegetables/scallions.jfif',c:'vegetables'},
+    {id:80,n:'Red Chili',p:20.00,img:'products/vegetables/silired.jfif',c:'vegetables'},
+    {id:81,n:'Tomato',p:10.00,img:'products/vegetables/tomato.jfif',c:'vegetables'},
+    ];
+            allProducts = products.map(p => ({ id: p.id, name: p.n, price: p.p, image: p.img, category: p.c, stock: p.stock }));
             displayProducts(allProducts);
         }
 
-        function displayProducts(products) {
+    function displayProducts(products) {
             const grid = document.getElementById('productGrid');
             if (products.length === 0) {
                 grid.innerHTML = '<div class="col-12 text-center py-5"><p class="text-muted">No products found.</p></div>';
@@ -1250,6 +1445,32 @@
             display.innerText = val;
         }
 
+
+    async function loadProducts() {
+    try {
+        const response = await fetch('/api/products/');  // Admin products
+        const data = await response.json();
+        console.log("Admin products:", data);  // Check console
+        
+        allProducts = data.map(p => ({
+            id: p.id,
+            name: p.name,
+            price: parseFloat(p.price),
+            image: p.image,  // /media/colgate.jpg
+            category: p.category || 'general',
+            stock: Number(p.stock || 10)
+        }));
+        
+        displayProducts(allProducts);
+        
+    } catch (error) {
+        console.error("API failed → static fallback");
+        displayStaticProducts();  // Your 81 products
+    }
+}
+// ✅ WORKING QUANTITY CONTROL
+
+
         function addToCart(id, btn) {
             const product = allProducts.find(p => p.id === id);
             const quantity = parseInt(document.getElementById(`qty-${id}`).innerText);
@@ -1280,16 +1501,22 @@
                 return;
             }
             let total = 0;
-            cartList.innerHTML = cart.map((item, index) => {
-                const subtotal = item.price * item.quantity;
-                total += subtotal;
-                return `
-                    <div class="d-flex align-items-center mb-4 p-3 border rounded-3">
-                        <img src="${item.image}" class="cart-item-img me-3 shadow-sm" onerror="this.src='https://picsum.photos/seed/${item.id}/60'">
-                        <div class="flex-grow-1">
-                            <h6 class="mb-1 fw-bold">${item.name}</h6>
-                            <small class="text-muted">₱${item.price.toFixed(2)}</small>
-                        </div>
+    cartList.innerHTML = cart.map((item, index) => {
+        const subtotal = item.price * item.quantity;
+        total += subtotal;
+        const imageSrc = item.image.startsWith('/media/') || item.image.startsWith('http') 
+            ? item.image 
+            : `/static/${item.image}`;
+        
+        return `
+        <div class="d-flex align-items-center mb-4 p-3 border rounded-3">
+            <img src="${imageSrc}" class="cart-item-img me-3 shadow-sm" 
+                 onerror="this.src='/static/product/placeholder.jpg'" 
+                 style="width:60px; height:60px; object-fit:cover; border-radius:8px;">
+            <div class="flex-grow-1">
+                <h6 class="mb-1 fw-bold">${item.name}</h6>
+                <small class="text-muted">₱${item.price.toFixed(2)}</small>
+            </div>
                         <div style="display: flex; gap: 0.5rem; align-items: center;">
                             <button style="width: 30px; height: 30px; border: 1px solid #ccc; background: white; border-radius: 4px; cursor: pointer;" onclick="decreaseQty(${index}); this.blur();">-</button>
                             <span style="width: 40px; text-align: center; font-weight: 600;">${item.quantity}</span>
@@ -1348,71 +1575,98 @@
             return cookieValue;
         }
 
-        async function processOrder() {
-            const name = document.getElementById('customerName').value.trim();
-            const phone = document.getElementById('phoneNumber').value.trim();
-            const address = document.getElementById('deliveryAddress').value.trim();
-            const method = document.getElementById('paymentMethod').value;
-            if (!name || !phone || !address) { alert("Please fill in all fields!"); return; }
-
-            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            const totalToPay = subtotal + 50;
-
-            const newOrder = {
-                orderId: "#ORD-" + Math.floor(1000 + Math.random() * 9000),
+    async function processOrder() {
+    // Get form data
+    const name = document.getElementById('customerName').value.trim();
+    const phone = document.getElementById('phoneNumber').value.trim();
+    const address = document.getElementById('deliveryAddress').value.trim();
+    const method = document.getElementById('paymentMethod').value;
+    
+    if (!name || !phone || !address) {
+        showToast('Please fill all fields!', 'error');
+        return;
+    }
+    
+    // ✅ BUTTON SPINNER
+    const btn = document.getElementById('placeOrderBtn');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating Order...';
+    
+    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const totalToPay = subtotal + 50;
+    
+    // ✅ DJANGO ORDER DATA
+    const orderData = {
+        cart_items: cart.map(item => ({
+            product_id: item.id,
+            quantity: item.quantity,
+            price: parseFloat(item.price)
+        })),
+        total: totalToPay,
+        customer_name: name,
+        phone: phone,
+        address: address,
+        payment_method: method
+    };
+    
+    try {
+        // ✅ CALL DJANGO API
+        const response = await fetch('/api/create-order/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(orderData)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // ✅ DJANGO ORDER CREATED - Clear cart
+            cart = [];
+            orderHistory.unshift({
+                orderId: data.order_number,
                 customerName: name,
                 phoneNumber: phone,
                 date: new Date().toLocaleDateString(),
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                time: new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}),
                 address: address,
                 paymentMethod: method,
-                items: [...cart],
+                items: [...orderData.cart_items],
                 total: totalToPay,
-                status: (method === 'cod') ? 'Pending' : 'Awaiting Payment'
-            };
-
-            if (method === 'gcash' || method === 'card') {
-                const btn = document.getElementById('placeOrderBtn');
-                btn.disabled = true;
-                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
-                document.getElementById('paymentLoadingOverlay').classList.add('show');
-                try {
-                    const response = await fetch('/api/checkout/', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-                        body: JSON.stringify({ order_details: newOrder, total: totalToPay })
-                    });
-                    if (!response.ok) { const errText = await response.text(); throw new Error(`Server error ${response.status}: ${errText}`); }
-                    const data = await response.json();
-                    if (data.checkout_url) {
-                        orderHistory.unshift(newOrder);
-                        localStorage.setItem(`orders_${currentUser}`, JSON.stringify(orderHistory));
-                        cart = []; saveCart(); updateCartBadge();
-                        window.location.href = data.checkout_url;
-                    } else {
-                        throw new Error(data.error || data.detail || "No checkout_url returned from server.");
-                    }
-                } catch (error) {
-                    console.error("Payment Error:", error);
-                    document.getElementById('paymentLoadingOverlay').classList.remove('show');
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fas fa-lock me-2"></i>Place Order Now';
-                    alert(`⚠️ Payment failed:\n\n${error.message}\n\nPlease try again or use Cash on Delivery.`);
+                status: 'Awaiting Payment'
+            });
+            
+            localStorage.setItem(`orders_${currentUser}`, JSON.stringify(orderHistory));
+            saveCart();
+            updateCartBadge();
+            
+            // Close checkout
+            const checkoutModal = bootstrap.Modal.getInstance(document.getElementById('checkoutModal'));
+            if (checkoutModal) checkoutModal.hide();
+            
+            setTimeout(() => {
+                if (method === 'gcash') {
+                    showGcashModal({gcash_number: '09171234567', gcash_name: 'OnlineTindahan'});
+                } else if (method === 'card') {
+                    showCardModal({card_brands: ['Visa', 'Mastercard']});
+                } else {  // COD
+                    btn.innerHTML = '<i class="fas fa-check text-success me-2"></i>Order Complete!';
+                    showToast('COD order created in admin!', 'success');
+                    setTimeout(() => showDashboard(), 1500);
                 }
-            } else {
-                orderHistory.unshift(newOrder);
-                localStorage.setItem(`orders_${currentUser}`, JSON.stringify(orderHistory));
-                cart = []; saveCart(); updateCartBadge();
-                const checkoutModalEl = document.getElementById('checkoutModal');
-                checkoutModalEl.addEventListener('hidden.bs.modal', function afterClose() {
-                    checkoutModalEl.removeEventListener('hidden.bs.modal', afterClose);
-                    alert("🎉 Order placed successfully! (Cash on Delivery)");
-                    showDashboard();
-                });
-                bootstrap.Modal.getInstance(checkoutModalEl).hide();
-            }
+            }, 300);
         }
-
+        
+    } catch (error) {
+        console.error('Order error:', error);
+        showToast('Order failed - try again', 'error');
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
         // ─── ORDER TRACKING ────────────────────────────────────────────────────────
 
         function getTrackingTimeline(order) {
@@ -1498,6 +1752,194 @@
             `).join('');
             new bootstrap.Modal(document.getElementById('trackingModal')).show();
         }
+     function showGcashModal(data) {
+    document.getElementById('gcashTotal').innerText = `₱${data.total.toFixed(2)}`;
+    document.getElementById('gcashNumberDisplay').innerText = data.gcash_number;  
+    document.getElementById('gcashNameDisplay').innerText = data.gcash_name;      
+
+    const checkbox = document.getElementById('confirmCheck');
+    const button = document.getElementById('confirmBtn');
+
+    // Reset state every open
+    checkbox.checked = false;
+    button.disabled = true;
+
+    // REMOVE old listeners (important!)
+    checkbox.onchange = null;
+    checkbox.onchange = function () {
+        button.disabled = !this.checked;
+    };
+
+    new bootstrap.Modal(document.getElementById('gcashModal')).show();
+}
+
+function confirmGcashPayment() {
+
+    const isChecked = document.getElementById('confirmCheck').checked;
+
+    if (!isChecked) {
+        showToast('Please confirm the payment first!', 'error');
+        return;
+    }
+
+    // Save status only
+    orderHistory[0].status = 'Payment Confirmed (GCash)';
+    localStorage.setItem(`orders_${currentUser}`, JSON.stringify(orderHistory));
+
+    const modal = bootstrap.Modal.getInstance(document.getElementById('gcashModal'));
+    modal.hide();
+
+    setTimeout(() => {
+        showDashboard();
+    }, 200);
+}
+
+function showCardModal(data) {
+    document.getElementById('cardTotal').innerText = `₱${data.total.toFixed(2)}`;
+    document.getElementById('cardBrands').innerText = data.card_brands?.join(', ') || 'Visa, Mastercard, Debit';
+    new bootstrap.Modal(document.getElementById('cardModal')).show();
+}
+
+
+function confirmCardPayment() {
+    const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
+    const expiry = document.getElementById('cardExpiry').value;
+    const cvv = document.getElementById('cardCVV').value;
+    
+    if (cardNumber.length < 13 || !expiry || cvv.length < 3) {
+        showToast('Complete all card details!', 'error');
+        return;
+    }
+    
+    const spinner = document.getElementById('cardSpinner');
+    spinner.classList.remove('d-none');
+    
+    // FASTER - 1s instead of 2s
+    setTimeout(() => {
+        orderHistory[0].cardDetails = {
+            last4: cardNumber.slice(-4),
+            expiry: expiry
+        };
+        orderHistory[0].status = 'Payment Confirmed (Card)';
+        localStorage.setItem(`orders_${currentUser}`, JSON.stringify(orderHistory));
+        
+        const modal = bootstrap.Modal.getInstance(document.getElementById('cardModal'));
+        modal.hide();
+        
+        setTimeout(() => {
+            showDashboard();  // Direct to products
+        }, 200);
+    }, 1000); // Reduced from 2s → 1s
+}
+
+// Load saved addresses on checkout modal open
+function loadSavedAddresses() {
+    const addresses = JSON.parse(localStorage.getItem(`addresses_${currentUser}`) || '[]');
+    const select = document.getElementById('savedAddresses');
+    select.innerHTML = '<option value="">Select saved address or type new</option>';
+    
+    addresses.forEach((address, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = `${address.type}: ${address.fullAddress.substring(0, 40)}${address.fullAddress.length > 40 ? '...' : ''}`;
+        select.appendChild(option);
+    });
+}
+
+// Load selected address into textarea
+function loadSelectedAddress() {
+    const select = document.getElementById('savedAddresses');
+    const textarea = document.getElementById('deliveryAddress');
+    
+    if (select.value === '') {
+        textarea.value = '';
+        textarea.classList.remove('d-none');
+        return;
+    }
+    
+    const addresses = JSON.parse(localStorage.getItem(`addresses_${currentUser}`) || '[]');
+    const address = addresses[select.value];
+    textarea.value = `${address.fullAddress} (${address.type})`;
+}
+
+// Save new address from addressModal
+function saveAddress() {
+    const type = document.getElementById('addressType').value;
+    const addressText = document.getElementById('addressText').value.trim();
+    const phone = document.getElementById('addressPhone').value.trim();
+    const setDefault = document.getElementById('setDefault').checked;
+    
+    if (!type || !addressText || !phone) {
+        showToast('Please fill all fields!', 'error');
+        return;
+    }
+    
+    const addresses = JSON.parse(localStorage.getItem(`addresses_${currentUser}`) || '[]');
+    const newAddress = {
+        id: Date.now(),
+        type,
+        fullAddress: addressText,
+        phone,
+        isDefault: setDefault,
+        createdAt: new Date().toLocaleDateString()
+    };
+    
+    addresses.unshift(newAddress); // Add to top
+    localStorage.setItem(`addresses_${currentUser}`, JSON.stringify(addresses));
+    
+    showToast('Address saved!', 'success');
+    bootstrap.Modal.getInstance(document.getElementById('addressModal')).hide();
+    
+    // Refresh checkout addresses
+    loadSavedAddresses();
+}
+
+function saveCheckoutAddress(name, phone, addressText) {
+    if (!userProfile.addresses) userProfile.addresses = [];
+    
+    // Extract type from address or default to "Home"
+    const type = addressText.includes('Office') ? 'Office' : 
+                addressText.includes('Work') ? 'Office' : 'Home';
+    
+    const newAddress = {
+        type,
+        address: addressText,
+        phone,
+        isDefault: false, // Let user set default later
+        createdAt: new Date().toLocaleDateString()
+    };
+    
+    // Avoid duplicates
+    const exists = userProfile.addresses.some(addr => 
+        addr.address === newAddress.address && addr.phone === newAddress.phone
+    );
+    
+    if (!exists) {
+        userProfile.addresses.unshift(newAddress);
+        localStorage.setItem(`profile_${currentUser}`, JSON.stringify(userProfile));
+        showToast('Address saved to profile!', 'success');
+        loadAddresses(); // Refresh profile addresses
+    }
+}
+// Auto-load addresses when checkout opens
+document.getElementById('checkoutModal').addEventListener('shown.bs.modal', loadSavedAddresses);
+function showToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-white bg-${type === 'error' ? 'danger' : 'success'} border-0 position-fixed`;
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+    
+    toast.addEventListener('hidden.bs.toast', () => toast.remove());
+}
     </script>
 </body>
 </html>

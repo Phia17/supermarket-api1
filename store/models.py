@@ -5,18 +5,23 @@ from datetime import timedelta
 
 class Product(models.Model):
     CATEGORIES = [
-        ('fruits', 'Fruits'),
+        ('bath&body', 'Bath&Body'),
         ('vegetables', 'Vegetables'),
-        ('dairy', 'Dairy'),
+        ('snacks', 'Snacks'),
         ('meats', 'Meats'),
         ('drinks', 'Drinks'),
         ('sweets', 'Sweets'),
+        ('canned', 'Canned'),
+        ('seasonings', 'Seasonings'),
+        ('laundry', 'Laundry'),
     ]
+
+    category = models.CharField(max_length=50, choices=CATEGORIES, default='bath&body')  # Merged: max_length=50, kept default
     
     name = models.CharField(max_length=200)
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    image = models.CharField(max_length=500)
-    category = models.CharField(max_length=50, choices=CATEGORIES)
+    image = models.ImageField(upload_to='products/%Y/%m/%d/', blank=True, null=True)
+    stock = models.PositiveIntegerField(default=10, help_text="Available stock")
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
@@ -50,3 +55,16 @@ class Order(models.Model):
     
     def __str__(self):
         return f"Order {self.id} - {self.user.username}"
+
+# ADD THIS at BOTTOM of store/models.py (after Order model)
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    def __str__(self):
+        return f"{self.product.name} x{self.quantity}"
+    
+    class Meta:
+        db_table = 'order_items'
