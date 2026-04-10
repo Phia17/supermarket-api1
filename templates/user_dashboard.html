@@ -674,7 +674,7 @@
                         </div>
                         <div class="d-flex justify-content-between mb-2">
                             <span>Delivery:</span>
-                            <span>₱50</span>
+                            <span>₱100</span>
                         </div>
                         <hr class="my-2">
                         <div class="d-flex justify-content-between align-items-center">
@@ -1459,7 +1459,7 @@
         displayStaticProducts();  // Your 81 products
     }
 }
-// ✅ WORKING QUANTITY CONTROL
+// WORKING QUANTITY CONTROL
 
 
         function addToCart(id, btn) {
@@ -1543,7 +1543,7 @@
             if (cart.length === 0) return alert("Your cart is empty!");
             const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
             document.getElementById('summarySubtotal').innerText = `₱${subtotal.toFixed(2)}`;
-            document.getElementById('summaryTotal').innerText = `₱${(subtotal + 50).toFixed(2)}`;
+            document.getElementById('summaryTotal').innerText = `₱${(subtotal + 100).toFixed(2)}`;
             document.getElementById('checkoutForm').reset();
             const cartModalEl = document.getElementById('cartModal');
             cartModalEl.addEventListener('hidden.bs.modal', function openCheckout() {
@@ -1599,91 +1599,86 @@ async function processOrder() {
     };
 
     try {
-        const response = await fetch('/api/create-order/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            },
-            body: JSON.stringify(orderData)
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-
-    const orderItems = cart.map(item => ({
-        id: item.id,
-        name: item.name,
-        price: item.price,
-        image: item.image,
-        quantity: item.quantity
-    }));
-
-    // Add to order history
-    orderHistory.unshift({
-        orderId: data.order_number,
-        customerName: name,
-        phoneNumber: phone,
-        date: new Date().toLocaleDateString('en-PH', { timeZone: 'Asia/Manila' }),
-        time: new Date().toLocaleTimeString('en-PH', { timeZone: 'Asia/Manila' }),
-        address: address,
-        paymentMethod: method,
-        items: orderItems,
-        total: totalToPay,
-        status: initialStatus,
-        trackingNumber: data.order_number
+    const response = await fetch('/api/create-order/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify(orderData)
     });
 
-    const autoDeliver = setTimeout(() => {
-    const order = orderHistory.find(o => o.orderId === data.order_number);
-    if (order && (order.status === 'Pending' || order.status === 'Awaiting Payment')) {
-        order.status = 'Delivered';
+    let data;
+    try {
+        data = await response.json();
+    } catch {
+        throw new Error("Server returned invalid response");
+    }
+
+    console.log("Response data:", data);
+
+    if (data.success || data.order_number) {
+
+        const orderItems = cart.map(item => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            image: item.image,
+            quantity: item.quantity
+        }));
+
+        orderHistory.unshift({
+            orderId: data.order_number,
+            customerName: name,
+            phoneNumber: phone,
+            date: new Date().toLocaleDateString('en-PH', { timeZone: 'Asia/Manila' }),
+            time: new Date().toLocaleTimeString('en-PH', { timeZone: 'Asia/Manila' }),
+            address: address,
+            paymentMethod: method,
+            items: orderItems,
+            total: totalToPay,
+            status: method === 'gcash' ? 'Awaiting Payment' : 'Pending',
+            trackingNumber: data.order_number
+        });
+
         localStorage.setItem(`orders_${currentUser}`, JSON.stringify(orderHistory));
-        renderOrderHistory();
+
+        cart = [];
+        localStorage.setItem('cart', JSON.stringify(cart));
+        saveCart();
+        updateCartBadge();
+
+        const checkoutModal = bootstrap.Modal.getInstance(document.getElementById('checkoutModal'));
+        if (checkoutModal) checkoutModal.hide();
+
+        setTimeout(() => {
+            if (method === 'gcash') {
+                showGcashModal({
+                    total: totalToPay,
+                    gcash_number: data.gcash_number || '09171234567',
+                    gcash_name: data.gcash_name || 'OnlineTindahan'
+                });
+            } else if (method === 'card') {
+                showCardModal({
+                    total: totalToPay,
+                    card_brands: data.card_brands || ['Visa', 'Mastercard']
+                });
+            } else {
+                showToast('COD order created!', 'success');
+                setTimeout(() => showDashboard(), 1500);
+            }
+        }, 300);
+
+    } else {
+        throw new Error(data.message || "Order failed");
     }
-}, 30000);
 
-    localStorage.setItem(`orders_${currentUser}`, JSON.stringify(orderHistory));
-
-    cart = [];
-
-    localStorage.setItem('cart', JSON.stringify(cart));
-    saveCart();
-    updateCartBadge();
-
-    const checkoutModal = bootstrap.Modal.getInstance(document.getElementById('checkoutModal'));
-    if (checkoutModal) checkoutModal.hide();
-
-    setTimeout(() => {
-        if (method === 'gcash') {
-            showGcashModal({
-                total: totalToPay,
-                gcash_number: data.gcash_number || '09171234567',
-                gcash_name: data.gcash_name || 'OnlineTindahan'
-            });
-        } else if (method === 'card') {
-            showCardModal({
-                total: totalToPay,
-                card_brands: data.card_brands || ['Visa', 'Mastercard']
-            });
-        } else {
-            btn.innerHTML = '<i class="fas fa-check text-success me-2"></i>Order Complete!';
-            showToast('COD order created in admin!', 'success');
-            setTimeout(() => showDashboard(), 1500);
-        }
-    }, 300);
-        } else {
-            showToast(data.message || 'Order creation failed', 'error');
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-        }
-    } catch (error) {
-        console.error('Order error:', error);
-        showToast('Order failed - try again', 'error');
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-    }
+} catch (error) {
+    console.error('Order error:', error);
+    showToast(error.message || 'Order failed - try again', 'error');
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+}
 }
         // ─── ORDER TRACKING ────────────────────────────────────────────────────────
 
@@ -1696,8 +1691,7 @@ async function processOrder() {
                 events.push({ date: d1.toLocaleDateString(), time: d1.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Seller is preparing your parcel.', latest: false });
                 const d2 = new Date(base.getTime() + 5 * 3600000);
                 events.push({ date: d2.toLocaleDateString(), time: d2.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Parcel has been received at drop-off point.', latest: true });
-            } else if (order.status === 'Shipped') {
-                const d1 = new Date(base.getTime() + 2*3600000);  events.push({ date: d1.toLocaleDateString(), time: d1.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Seller is preparing your parcel.', latest: false });
+            } else if (order.status === 'Shipped') {                const d1 = new Date(base.getTime() + 2*3600000);  events.push({ date: d1.toLocaleDateString(), time: d1.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Seller is preparing your parcel.', latest: false });
                 const d2 = new Date(base.getTime() + 5*3600000);  events.push({ date: d2.toLocaleDateString(), time: d2.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Parcel received at drop-off point.', latest: false });
                 const d3 = new Date(base.getTime() + 18*3600000); events.push({ date: d3.toLocaleDateString(), time: d3.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Parcel arrived at sorting facility.', latest: false });
                 const d4 = new Date(base.getTime() + 30*3600000); events.push({ date: d4.toLocaleDateString(), time: d4.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'The order is in transit to the next location.', latest: true });
@@ -1711,7 +1705,7 @@ async function processOrder() {
                 const d2 = new Date(base.getTime() + 5*3600000);  events.push({ date: d2.toLocaleDateString(), time: d2.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Parcel received at drop-off point.', latest: false });
                 const d3 = new Date(base.getTime() + 18*3600000); events.push({ date: d3.toLocaleDateString(), time: d3.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Parcel arrived at sorting facility.', latest: false });
                 const d4 = new Date(base.getTime() + 30*3600000); events.push({ date: d4.toLocaleDateString(), time: d4.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Out for delivery.', latest: false });
-                const d5 = new Date(base.getTime() + 48*3600000); events.push({ date: d5.toLocaleDateString(), time: d5.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: '✅ Parcel delivered successfully. Thank you!', latest: true });
+                const d5 = new Date(base.getTime() + 48*3600000); events.push({ date: d5.toLocaleDateString(), time: d5.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Parcel delivered successfully. Thank you!', latest: true });
             }
             return events.reverse();
         }

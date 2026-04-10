@@ -12,7 +12,6 @@ urlpatterns = [
     path('get-cart/', views.get_cart, name='get_cart'),
     # store/urls.py or market/urls.py
     path('checkout/', views.create_checkout_session, name='api_checkout'),
-    path('user-dashboard/', views.user_dashboard, name='user_dashboard'),
     path('logout/', views.logout_view, name='logout'),
     path('create-order/', views.create_order, name='create_order'),
     path('create-product/', views.create_product, name='create_product'),
