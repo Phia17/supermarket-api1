@@ -637,8 +637,7 @@
                             <label class="form-label fw-bold small mb-1">Payment</label>
                             <select class="form-select form-select-sm" id="paymentMethod">
                                 <option value="cod">Cash on Delivery</option>
-                                <option value="gcash">GCash</option>
-                                <option value="card">Debit/Credit Card</option>
+
                             </select>
                         </div>
                     </div>
@@ -730,103 +729,7 @@
         </div>
     </div>
     
-    <!-- GCash Modal -->
-<div class="modal fade" id="gcashModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content rounded-4 shadow">
 
-            <!-- Header -->
-            <div class="modal-header bg-success text-white rounded-top-4">
-                <h5 class="mb-0">Confirm GCash Payment</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>    
-            </div>
-
-            <!-- Body -->
-            <div class="modal-body p-4 text-center">
-
-                <div class="mb-3">
-                    <i class="fas fa-wallet fa-3x text-success"></i>
-                </div>
-
-                <p class="text-muted mb-1">You are about to send</p>
-
-                <!-- Amount -->
-                <h2 class="fw-bold text-success mb-3">
-                    <span id="gcashTotal">₱0.00</span>
-                </h2>
-
-                <!-- Receiver -->
-                <div class="bg-light p-3 rounded-3 mb-3">
-                    <div class="fw-bold" id="gcashNameDisplay">OnlineTindahan</div>
-                    <div class="text-muted small" id="gcashNumberDisplay">09171234567</div>
-                </div>
-
-                <p class="text-muted small mb-3">
-                    Make sure the number and amount are correct before proceeding.
-                </p>
-
-                <!-- Checkbox -->
-                <div class="form-check text-start">
-                    <input class="form-check-input" type="checkbox" id="confirmCheck">
-                    <label class="form-check-label" for="confirmCheck">
-                        I confirm that I have completed the payment via GCash
-                    </label>
-                </div>
-
-            </div>
-
-            <!-- Footer -->
-            <div class="modal-footer border-0 px-4 pb-4">
-                <button class="btn btn-success w-100 rounded-pill"
-                        id="confirmBtn"
-                        disabled
-                        onclick="confirmGcashPayment()">
-                    Confirm Payment
-                </button>
-            </div>
-
-        </div>
-    </div>
-</div>
-
-<!-- Card Modal -->
-<div class="modal fade" id="cardModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">Debit/Credit Card</h5>
-                <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body p-4">
-                <div class="alert alert-info mb-4">
-                    <strong>Total: <span id="cardTotal">₱0.00</span></strong><br>
-                    <small>We accept: <span id="cardBrands"></span></small>
-                </div>
-                <div class="row g-3">
-                    <div class="col-12">
-                        <label class="form-label fw-bold">Card Number</label>
-                        <input type="text" class="form-control" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Expiry</label>
-                        <input type="text" class="form-control" id="cardExpiry" placeholder="MM/YY" maxlength="5">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">CVV</label>
-                        <input type="text" class="form-control" id="cardCVV" placeholder="123" maxlength="3">
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button class="btn btn-primary" onclick="confirmCardPayment()">
-                    <span class="spinner-border spinner-border-sm me-2 d-none" id="cardSpinner"></span>
-                    Pay Now
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
 
     <!-- Order Tracking Modal -->
     <div class="modal fade" id="trackingModal" tabindex="-1">
@@ -1285,8 +1188,8 @@
             alert('Items added to cart!');
         }
 
-    async function cancelOrder(idx) {
-    if (!confirm('Cancel this order?')) return;
+   async function cancelOrder(idx) {
+    if (!confirm('Cancel this order? Stock will be restored.')) return;
 
     const order = orderHistory[idx];
     if (!order || order.orderId == null) {
@@ -1313,9 +1216,16 @@
             throw new Error(data.message || 'Cancel failed');
         }
 
+        // Update order status
         orderHistory[idx].status = 'Cancelled';
         localStorage.setItem(`orders_${currentUser}`, JSON.stringify(orderHistory));
-        switchTab('cancelled', document.getElementById('tabBtnCancelled'));
+  
+        showToast('Order #' + order.orderNumber + ' cancelled!', 'success');
+        
+        // 1. Switch to dashboard/cancelled tab
+        showDashboard();
+        showToast('Order cancelled! Check dashboard.', 'success');
+        
     } catch (error) {
         console.error('Cancel error:', error);
         showToast(error.message || 'Cancel failed', 'error');
@@ -1337,6 +1247,9 @@
             }
         }
 
+function loadAddresses() {
+    console.log('Addresses: No saved addresses');
+}
         // ─── PRODUCTS ─────────────────────────────────────────────────────────────
 
         function loadProducts() {

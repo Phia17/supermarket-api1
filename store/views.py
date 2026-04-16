@@ -77,13 +77,11 @@ def login_view(request):
 
 
 # ==================== LOGOUT ====================
-from django.contrib.auth import logout
-from django.shortcuts import redirect
-from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_protect
 
-@csrf_protect
 @require_POST
+@csrf_protect
 def logout_view(request):
     logout(request)
     return redirect('home')
@@ -246,9 +244,8 @@ def create_checkout_session(request):
     try:
         data = json.loads(request.body)
         total = float(data.get('total', 0))
-        payment_method = data.get('payment_method', 'cod')
+        payment_method = 'cod'  # Force COD only
 
-       
         order = Order.objects.create(
             user=request.user,
             total=total,
@@ -259,7 +256,6 @@ def create_checkout_session(request):
             status='Awaiting Payment',
         )
 
-      
         order.tracking_number = f"ORD-{order.id:03d}"
         order.save(update_fields=['tracking_number'])
 
@@ -272,16 +268,10 @@ def create_checkout_session(request):
             'payment_method': payment_method
         }
 
-        if payment_method == 'gcash':
-            response_data.update({
-                'gcash_number': '09171234567',
-                'gcash_name': 'OnlineTindahan'
-            })
-        elif payment_method == 'card':
-            response_data.update({
-                'card_brands': ['Visa', 'Mastercard', 'Debit'],
-                'processing_time': 'Instant'
-            })
+        # COD only - no GCash/Card extras
+        response_data.update({
+            'payment_instructions': 'Cash on Delivery - Pay driver upon receipt'
+        })
 
         return JsonResponse(response_data)
 
@@ -352,7 +342,7 @@ def create_order(request):
                 customer_name=customer_name,
                 phone=phone,
                 address=address,
-                payment_method=payment_method,
+                payment_method='cod',
                 status='Pending'
             )
 
@@ -428,25 +418,29 @@ def cancel_order(request):
 
     try:
         data = json.loads(request.body.decode('utf-8'))
-        print("CANCEL PAYLOAD:", data)
-
         order_id = data.get('order_id')
         if not order_id:
             return JsonResponse({'success': False, 'message': 'Missing order_id'}, status=400)
 
-        order = Order.objects.get(id=int(order_id), user=request.user)
+        order = Order.objects.select_related('user').get(id=int(order_id), user=request.user)
+        
+        # Restore stock from OrderItems
+        order_items = OrderItem.objects.filter(order=order).select_related('product')
+        for item in order_items:
+            item.product.stock += item.quantity 
+            item.product.save(update_fields=['stock'])
+        
+      
         order.status = 'cancelled'
         order.save(update_fields=['status', 'updated_at'])
 
-        return JsonResponse({'success': True, 'message': 'Order cancelled successfully!'})
+        return JsonResponse({'success': True, 'message': 'Order cancelled successfully! Stock restored.'})
     except ValueError:
         return JsonResponse({'success': False, 'message': 'Invalid order_id'}, status=400)
     except Order.DoesNotExist:
         return JsonResponse({'success': False, 'message': 'Order not found'}, status=404)
     except Exception as e:
-        return JsonResponse({'success': False, 'message': str(e)}, status=400)
-    
-
+        return JsonResponse({'success': False, 'message': str(e)}, status=500)
 
 @csrf_exempt
 def reset_password(request):
@@ -475,3 +469,26 @@ def reset_password(request):
     return JsonResponse({'message': 'POST required'}, status=405)    
 
 
+@login_required
+@user_passes_test(lambda u: u.is_staff)  # Admin only
+@csrf_exempt
+def delete_order(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'POST only'}, status=405)
+
+    try:
+        data = json.loads(request.body)
+        order_id = int(data.get('order_id'))
+        
+        order = Order.objects.get(id=order_id)
+    
+        order.delete()
+        
+        return JsonResponse({
+            'success': True, 
+            'message': f'Order #{order.tracking_number} deleted permanently!'
+        })
+    except Order.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Order not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': str(e)}, status=400)
