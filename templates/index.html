@@ -86,6 +86,15 @@
 }
     </style>
 </head>
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
 <body>
 <!-- Navigation -->
 <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
@@ -223,12 +232,59 @@
                     </div>
                     <button type="submit" class="btn btn-success w-100 fw-bold">Login</button>
                 </form>
-                
+
                 <div class="text-center">
-                    <small class="text-muted" id="toggleText">
-                        Don't have an account? <a href="#" class="fw-bold text-primary" id="switchBtn">Create Account</a>
-                    </small>
+    <small class="text-muted" id="toggleText">
+
+        <!-- Forgot Password (LOGIN ONLY) -->
+        <a href="#" class="text-primary fw-bold d-none"
+           id="forgotPasswordLink"
+           onclick="openForgotModal()">
+            Forgot Password?
+        </a>
+        <!-- Signup switch -->
+        Don't have an account?
+        <a href="#" class="fw-bold text-primary" id="switchBtn">
+            Create Account
+        </a>
+
+    </small>
+</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="forgotModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Reset Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body p-4">
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Email</label>
+                    <input type="email" class="form-control" id="forgotEmail">
                 </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">New Password</label>
+                    <input type="password" class="form-control" id="newPassword">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Confirm Password</label>
+                    <input type="password" class="form-control" id="confirmPassword">
+                </div>
+
+                <button class="btn btn-primary w-100" onclick="resetPassword()">
+                    Reset Password
+                </button>
+
             </div>
         </div>
     </div>
@@ -265,15 +321,31 @@
             <!-- Contact Form -->
             <div class="col-lg-3 col-md-6 mb-4">
                 <h6 class="fw-bold mb-3">Contact Us</h6>
-                <form>
-                    <div class="mb-3">
-                        <input type="email" class="form-control rounded-pill" placeholder="Your email">
-                    </div>
-                    <div class="mb-3">
-                        <textarea class="form-control rounded-3" rows="2" placeholder="Message"></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-light rounded-pill w-100">Send Message</button>
-                </form>
+               <form id="contactForm" method="post">
+    {% csrf_token %}
+
+    <div class="mb-3">
+        <input type="email"
+               id="contactEmail"
+               name="email"
+               class="form-control rounded-pill"
+               placeholder="Your email"
+               required>
+    </div>
+
+    <div class="mb-3">
+        <textarea id="contactMessage"
+                  name="message"
+                  class="form-control rounded-3"
+                  rows="2"
+                  placeholder="Message"
+                  required></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-light rounded-pill w-100">
+        Send Message
+    </button>
+</form>
             </div>
             
             <!-- Social & Hours -->
@@ -332,42 +404,71 @@ function setupEventListeners() {
     });
 }
 
-async function loadProducts() {
-    displayStaticProducts();  // Static first
-    
-    try {
-        // Try multiple possible URLs
-        const possibleUrls = [
-            '/api/public-products/',
-            '/public-products/', 
-            '/api/products/',
-            '/products/'
-        ];
-        
-        for (let url of possibleUrls) {
-            try {
-                const response = await fetch(url);
-                if (response.ok) {
-                    const dbProducts = await response.json();
-                    if (dbProducts.length > 0) {
-                        // Admin products found!
-                        const products = dbProducts.map(p => ({
-                            id: p.id, name: p.name, price: parseFloat(p.price), 
-                            image: p.image, category: p.category, stock: p.stock || 10
-                        }));
-                        allProducts = products;
-                        displayProducts(products);
-                        console.log(`Found admin products at ${url}`);
-                        return;
-                    }
-                }
-            } catch (e) {
-                continue;  // Try next URL
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('contactForm');
+
+    if (!form) return;
+
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const email = document.getElementById('contactEmail').value.trim();
+        const message = document.getElementById('contactMessage').value.trim();
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        try {
+            const response = await fetch('/api/contact-us/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrfToken
+                },
+                body: new URLSearchParams({
+                    email: email,
+                    message: message
+                })
+            });
+
+            const data = await response.json();
+
+            alert(data.message);
+
+            if (data.success) {
+                form.reset();
             }
+
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to send message');
         }
-        console.log('No admin products found, using static');
+    });
+});
+
+ async function loadProducts() {
+    try {
+        const response = await fetch('/api/products/');
+        const data = await response.json();
+
+        console.log("Admin products:", data);
+
+        allProducts = data.map(p => ({
+            id: p.id,
+            name: p.name,
+            price: parseFloat(p.price || 0),
+
+            // FIX IMAGE SAFELY
+            image: p.image || '/static/product/placeholder.jpg',
+
+            category: p.category || 'general',
+
+            stock: Number(p.stock ?? 0)
+        }));
+
+        displayProducts(allProducts);
+
     } catch (error) {
-        console.log('Using static products');
+        console.error("API failed → static fallback", error);
+        displayStaticProducts();
     }
 }
 
@@ -608,8 +709,21 @@ function showLogin() {
 
     const toggleText = document.getElementById('toggleText');
     toggleText.innerHTML = `
-        Don't have an account?
-        <a href="#" class="fw-bold text-primary" id="switchBtn">Sign Up</a>
+        <div class="text-center">
+
+            <!-- Forgot Password (ONLY LOGIN) -->
+            <a href="#" class="text-primary fw-bold d-block mb-1"
+               onclick="openForgotModal()">
+                Forgot Password?
+            </a>
+
+            <!-- Switch to Signup -->
+            Don't have an account?
+            <a href="#" class="fw-bold text-primary" id="switchBtn">
+                Sign Up
+            </a>
+
+        </div>
     `;
 
     setupSwitchBtn();
@@ -697,7 +811,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(data),
-            credentials: 'same-origin'  // ✅ Keep Django session
+            credentials: 'same-origin'  
         });
 
         const result = await res.json();
@@ -716,6 +830,53 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
         btn.innerHTML = 'Login';
     }
 });
+
+function openForgotModal() {
+    const modal = new bootstrap.Modal(document.getElementById('forgotModal'));
+    modal.show();
+}
+
+async function resetPassword() {
+    const email = document.getElementById('forgotEmail').value.trim();
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+
+    if (!email || !newPassword || !confirmPassword) {
+        alert("Please fill all fields");
+        return;
+    }
+
+    if (newPassword !== confirmPassword) {
+        alert("Passwords do not match");
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/reset-password/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                email,
+                new_password: newPassword
+            })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            alert("Password updated successfully!");
+            bootstrap.Modal.getInstance(document.getElementById('forgotModal')).hide();
+        } else {
+            alert(data.message || "Reset failed");
+        }
+
+    } catch (err) {
+        console.error(err);
+        alert("Server error");
+    }
+}
 
 // --- Add to Cart (with modal fallback) ---
 async function addToCart(productId, btn) {

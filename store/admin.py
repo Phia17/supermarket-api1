@@ -1,6 +1,9 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from .models import Product, CartItem, Order, OrderItem
+from django.contrib import admin
+from django.utils.html import format_html
+from .models import Product, CartItem, Order, OrderItem, Feedback
 
 
 # ==================== PRODUCT ====================
@@ -76,3 +79,16 @@ class OrderAdmin(admin.ModelAdmin):
             obj.get_status_display()
         )
     status_colored.short_description = 'Status'
+
+
+# ==================== Contact Us ====================
+@admin.register(Feedback)
+class FeedbackAdmin(admin.ModelAdmin):
+    list_display = ['email', 'short_message', 'created_at']
+    search_fields = ['email', 'message']
+    list_filter = ['created_at']
+    readonly_fields = ['email', 'message', 'created_at']
+
+    def short_message(self, obj):
+        return obj.message[:50] + ('...' if len(obj.message) > 50 else '')
+    short_message.short_description = 'Message'    

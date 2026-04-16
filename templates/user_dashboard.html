@@ -452,9 +452,6 @@
                 <div id="cancelledOrdersContainer"></div>
             </div>
 
-            <!-- ══════════════════════════════════════════════════
-                 PROFILE INFO TAB — updated with all fields
-            ══════════════════════════════════════════════════ -->
             <div class="tab-content" id="profile">
                 <div class="profile-card">
 
@@ -848,7 +845,7 @@
                 </div>
                 <div class="tracking-modal-body">
                     <div class="delivery-date-banner">
-                        <div class="delivery-date-label">Estimated delivery date</div>
+                        <div class="delivery-date-label">Estimated Delivery</div>
                         <div class="delivery-date-value" id="trackingEstDate">—</div>
                     </div>
                     <div class="tracking-steps">
@@ -976,6 +973,7 @@
             loadCancelledOrders();
             loadProfileInfo();
             loadAddresses();
+            
         }
 
         function switchTab(tabName, btn) {
@@ -1019,7 +1017,7 @@
         <div class="order-card ${statusClass}">
             <div class="order-card-header">
                 <div class="d-flex justify-content-between align-items-start mb-2">
-                    <span class="order-id-badge">${order.orderId}</span>
+                    <span class="order-id-badge">${order.trackingNumber}</span>
                     <span class="status-badge ${statusBadgeClass}">
                         <i class="fas ${statusIcon} me-1"></i>${order.status}
                     </span>
@@ -1287,15 +1285,42 @@
             alert('Items added to cart!');
         }
 
-        function cancelOrder(idx) {
-            if (confirm('Cancel this order?')) {
-                orderHistory[idx].status = 'Cancelled';
-                localStorage.setItem(`orders_${currentUser}`, JSON.stringify(orderHistory));
-                loadDashboardData();
-                switchTab('cancelled', document.getElementById('tabBtnCancelled'));
-            }
+    async function cancelOrder(idx) {
+    if (!confirm('Cancel this order?')) return;
+
+    const order = orderHistory[idx];
+    if (!order || order.orderId == null) {
+        showToast('Missing order_id', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/cancel-order/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                order_id: Number(order.orderId)
+            })
+        });
+
+        const data = await response.json();
+        console.log('Cancel response:', data);
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || 'Cancel failed');
         }
 
+        orderHistory[idx].status = 'Cancelled';
+        localStorage.setItem(`orders_${currentUser}`, JSON.stringify(orderHistory));
+        switchTab('cancelled', document.getElementById('tabBtnCancelled'));
+    } catch (error) {
+        console.error('Cancel error:', error);
+        showToast(error.message || 'Cancel failed', 'error');
+    }
+}
         function clearCancelledHistory() {
             if (confirm('Clear all cancelled orders?')) {
                 orderHistory = orderHistory.filter(o => o.status !== 'Cancelled');
@@ -1403,78 +1428,194 @@
         }
 
     function displayProducts(products) {
-            const grid = document.getElementById('productGrid');
-            if (products.length === 0) {
-                grid.innerHTML = '<div class="col-12 text-center py-5"><p class="text-muted">No products found.</p></div>';
-                return;
-            }
-            grid.innerHTML = products.map(p => `
-                <div class="col-lg-3 col-md-4 col-6 mb-4">
-                    <div class="card product-card h-100 shadow-sm p-3">
-                        <img src="${p.image}" class="card-img-top" style="height:140px; object-fit:contain;" onerror="this.onerror=null;this.src='https://picsum.photos/seed/${p.id}/200';">
-                        <div class="card-body d-flex flex-column p-0 text-center mt-3">
-                            <h6 class="fw-bold mb-1">${p.name}</h6>
-                            <div class="text-success fw-bold mb-3">₱${p.price.toFixed(2)}</div>
-                            <div class="qty-container">
-                                <div class="qty-btn" onclick="updateQtyUI(${p.id}, -1)"><i class="fas fa-minus"></i></div>
-                                <div class="qty-display" id="qty-${p.id}">1</div>
-                                <div class="qty-btn" onclick="updateQtyUI(${p.id}, 1)"><i class="fas fa-plus"></i></div>
-                            </div>
-                            <button class="btn-add-cart mt-auto" onclick="addToCart(${p.id}, this)">
-                                <i class="fas fa-cart-plus"></i> Add to Cart
-                            </button>
-                        </div>
+    const grid = document.getElementById('productGrid');
+
+    if (!products || products.length === 0) {
+        grid.innerHTML = `
+            <div class="col-12 text-center py-5">
+                <p class="text-muted">No products found.</p>
+            </div>
+        `;
+        return;
+    }
+
+    grid.innerHTML = products.map(p => {
+
+        const stock = Number(p.stock) || 0;
+        const price = Number(p.price) || 0;
+
+        const isOut = stock <= 0;
+        const isLow = stock > 0 && stock <= 5;
+
+        return `
+        <div class="col-lg-3 col-md-4 col-6 mb-4">
+            <div class="card product-card h-100 shadow-sm p-3">
+
+                <img src="${p.image}"
+                     class="card-img-top"
+                     style="height:140px; object-fit:contain;"
+                     onerror="this.src='/static/product/placeholder.jpg'">
+
+                <div class="card-body d-flex flex-column p-0 text-center mt-3">
+
+                    <h6 class="fw-bold mb-1">${p.name}</h6>
+
+                    <div class="text-success fw-bold mb-3">
+                        ₱${price.toFixed(2)}
                     </div>
+
+                    <!-- STOCK BADGE -->
+                    <div class="mb-3">
+                        <span class="badge rounded-pill px-2 py-1
+                            ${stock > 5 ? 'bg-success' :
+                              isLow ? 'bg-warning' :
+                              'bg-danger'}">
+                            ${isOut ? 'OUT OF STOCK' : `Stock: ${stock}`}
+                        </span>
+                    </div>
+
+                    <!-- QUANTITY -->
+                    <div class="d-flex justify-content-center align-items-center gap-1 mb-3">
+
+                        <button class="btn btn-outline-secondary btn-sm"
+                                onclick="changeQty(this, -1)"
+                                ${isOut ? 'disabled' : ''}>
+                            <i class="fas fa-minus"></i>
+                        </button>
+
+                        <input type="number"
+                               id="qty-${p.id}"
+                               class="form-control text-center qty-input"
+                               value="1"
+                               min="1"
+                               max="${stock}"
+                               style="width:60px;"
+                               ${isOut ? 'disabled' : ''}>
+
+                        <button class="btn btn-outline-secondary btn-sm"
+                                onclick="changeQty(this, 1)"
+                                ${isOut ? 'disabled' : ''}>
+                            <i class="fas fa-plus"></i>
+                        </button>
+
+                    </div>
+
+                    <!-- ADD TO CART -->
+                    <button class="btn btn-add-cart mt-auto"
+                            onclick="addToCart(${p.id}, this)"
+                            ${isOut ? 'disabled' : ''}>
+
+                        <i class="fas fa-cart-plus"></i>
+                        ${isOut ? 'Out of Stock' : 'Add to Cart'}
+                    </button>
+
                 </div>
-            `).join('');
-        }
+            </div>
+        </div>
+        `;
+    }).join('');
+}
 
-        function updateQtyUI(id, delta) {
-            const display = document.getElementById(`qty-${id}`);
-            let val = parseInt(display.innerText) + delta;
-            if (val < 1) val = 1;
-            display.innerText = val;
-        }
+        function changeQty(btn, delta) {
+    const input = btn.parentElement.querySelector('.qty-input');
+    let val = parseInt(input.value) || 1;
+    val += delta;
 
+    const max = parseInt(input.max) || 99;
+    if (val < 1) val = 1;
+    if (val > max) val = max;
+
+    input.value = val;
+}
 
     async function loadProducts() {
     try {
-        const response = await fetch('/api/products/');  // Admin products
+        const response = await fetch('/api/products/');
         const data = await response.json();
-        console.log("Admin products:", data);  // Check console
-        
+
+        console.log("Admin products:", data);
+
         allProducts = data.map(p => ({
             id: p.id,
             name: p.name,
-            price: parseFloat(p.price),
-            image: p.image,  // /media/colgate.jpg
+            price: parseFloat(p.price || 0),
+
+            // FIX IMAGE SAFELY
+            image: p.image || '/static/product/placeholder.jpg',
+
             category: p.category || 'general',
-            stock: Number(p.stock || 10)
+
+            stock: Number(p.stock ?? 0)
         }));
-        
+
         displayProducts(allProducts);
-        
+
     } catch (error) {
-        console.error("API failed → static fallback");
-        displayStaticProducts();  // Your 81 products
+        console.error("API failed → static fallback", error);
+        displayStaticProducts();
     }
 }
 // WORKING QUANTITY CONTROL
+function syncStockUI() {
+    allProducts.forEach(p => {
+        const btn = document.querySelector(`button[onclick="addToCart(${p.id}, this)"]`);
+        const input = document.getElementById(`qty-${p.id}`);
 
+        if (!btn || !input) return;
 
-        function addToCart(id, btn) {
-            const product = allProducts.find(p => p.id === id);
-            const quantity = parseInt(document.getElementById(`qty-${id}`).innerText);
-            const existingItem = cart.find(item => item.id === id);
-            if (existingItem) existingItem.quantity += quantity;
-            else cart.push({ ...product, quantity });
-            const originalHtml = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-check"></i> Added!';
-            btn.style.background = "#28a745";
-            saveCart();
-            updateCartBadge();
-            setTimeout(() => { btn.innerHTML = originalHtml; btn.style.background = ""; }, 1200);
+        if (p.stock <= 0) {
+            btn.disabled = true;
+            btn.innerHTML = "Out of Stock";
+            btn.style.background = "#dc3545";
+            input.disabled = true;
         }
+    });
+}
+
+
+   function addToCart(id, btn) {
+    const product = allProducts.find(p => p.id === id);
+    if (!product) return;
+
+    const qtyInput = document.getElementById(`qty-${id}`);
+    const quantity = parseInt(qtyInput?.value) || 1;
+
+    // ⚠️ Only warn, DO NOT block
+    if (product.stock <= 0) {
+        showToast("Out of Stock", "error");
+        return;
+    }
+
+    const existingItem = cart.find(item => item.id === id);
+
+    if (existingItem) {
+        existingItem.quantity += quantity;
+    } else {
+        cart.push({
+            id: product.id,
+            name: product.name,
+            price: parseFloat(product.price),
+            image: product.image,
+            quantity: quantity
+        });
+    }
+
+    const originalHTML = btn.innerHTML;
+    const originalStyle = btn.style.backgroundColor;
+
+    btn.innerHTML = '<i class="fas fa-check"></i> Added!';
+    btn.style.backgroundColor = "#28a745";
+    btn.style.color = "white";
+
+    saveCart();
+    updateCartBadge();
+
+    setTimeout(() => {
+        btn.innerHTML = '<i class="fas fa-cart-plus"></i> Add to Cart';
+        btn.style.backgroundColor = originalStyle;
+        btn.style.color = "";
+    }, 1200);
+}
 
         function updateCartBadge() {
             const badge = document.getElementById('cartBadge');
@@ -1599,26 +1740,22 @@ async function processOrder() {
     };
 
     try {
-    const response = await fetch('/api/create-order/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
-        },
-        body: JSON.stringify(orderData)
-    });
+        const response = await fetch('/api/create-order/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(orderData)
+        });
 
-    let data;
-    try {
-        data = await response.json();
-    } catch {
-        throw new Error("Server returned invalid response");
-    }
+        const data = await response.json();
+        console.log("Response data:", data);
 
-    console.log("Response data:", data);
-
-    if (data.success || data.order_number) {
-
+        if (!data.success) {
+            throw new Error(data.error || data.message || "Order failed");
+        }
+       
         const orderItems = cart.map(item => ({
             id: item.id,
             name: item.name,
@@ -1627,19 +1764,24 @@ async function processOrder() {
             quantity: item.quantity
         }));
 
-        orderHistory.unshift({
-            orderId: data.order_number,
-            customerName: name,
-            phoneNumber: phone,
-            date: new Date().toLocaleDateString('en-PH', { timeZone: 'Asia/Manila' }),
-            time: new Date().toLocaleTimeString('en-PH', { timeZone: 'Asia/Manila' }),
-            address: address,
-            paymentMethod: method,
-            items: orderItems,
-            total: totalToPay,
-            status: method === 'gcash' ? 'Awaiting Payment' : 'Pending',
-            trackingNumber: data.order_number
-        });
+        const displayOrderNumber = data.order_number || "N/A";
+const displayTrackingNumber = data.tracking_number || "TN-00000";
+
+orderHistory.unshift({
+    orderId: data.order_id,
+    orderNumber: displayOrderNumber,     // ✅ ADD THIS
+    trackingNumber: displayTrackingNumber, // ✅ KEEP THIS
+
+    customerName: name,
+    phoneNumber: phone,
+    date: new Date().toLocaleDateString('en-PH', { timeZone: 'Asia/Manila' }),
+    time: new Date().toLocaleTimeString('en-PH', { timeZone: 'Asia/Manila' }),
+    address: address,
+    paymentMethod: method,
+    items: orderItems,
+    total: totalToPay,
+    status: 'Pending'
+});
 
         localStorage.setItem(`orders_${currentUser}`, JSON.stringify(orderHistory));
 
@@ -1650,7 +1792,9 @@ async function processOrder() {
 
         const checkoutModal = bootstrap.Modal.getInstance(document.getElementById('checkoutModal'));
         if (checkoutModal) checkoutModal.hide();
-
+        
+        await loadProducts();
+        
         setTimeout(() => {
             if (method === 'gcash') {
                 showGcashModal({
@@ -1664,64 +1808,144 @@ async function processOrder() {
                     card_brands: data.card_brands || ['Visa', 'Mastercard']
                 });
             } else {
-                showToast('COD order created!', 'success');
+                showToast('COD order created!', 'success'); 
                 setTimeout(() => showDashboard(), 1500);
             }
         }, 300);
 
-    } else {
-        throw new Error(data.message || "Order failed");
+    } catch (error) {
+        console.error('Order error:', error);
+        showToast(error.message || "Order failed", "error");
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
     }
+}
 
-} catch (error) {
-    console.error('Order error:', error);
-    showToast(error.message || 'Order failed - try again', 'error');
-    btn.innerHTML = originalText;
-    btn.disabled = false;
-}
-}
         // ─── ORDER TRACKING ────────────────────────────────────────────────────────
 
         function getTrackingTimeline(order) {
-            const base = new Date(order.date + ' ' + order.time);
-            const events = [];
-            events.push({ date: order.date, time: order.time, text: 'Order placed successfully.', latest: false });
-            if (order.status === 'Pending' || order.status === 'Awaiting Payment') {
-                const d1 = new Date(base.getTime() + 2 * 3600000);
-                events.push({ date: d1.toLocaleDateString(), time: d1.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Seller is preparing your parcel.', latest: false });
-                const d2 = new Date(base.getTime() + 5 * 3600000);
-                events.push({ date: d2.toLocaleDateString(), time: d2.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Parcel has been received at drop-off point.', latest: true });
-            } else if (order.status === 'Shipped') {                const d1 = new Date(base.getTime() + 2*3600000);  events.push({ date: d1.toLocaleDateString(), time: d1.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Seller is preparing your parcel.', latest: false });
-                const d2 = new Date(base.getTime() + 5*3600000);  events.push({ date: d2.toLocaleDateString(), time: d2.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Parcel received at drop-off point.', latest: false });
-                const d3 = new Date(base.getTime() + 18*3600000); events.push({ date: d3.toLocaleDateString(), time: d3.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Parcel arrived at sorting facility.', latest: false });
-                const d4 = new Date(base.getTime() + 30*3600000); events.push({ date: d4.toLocaleDateString(), time: d4.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'The order is in transit to the next location.', latest: true });
-            } else if (order.status === 'Out for Delivery') {
-                const d1 = new Date(base.getTime() + 2*3600000);  events.push({ date: d1.toLocaleDateString(), time: d1.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Seller is preparing your parcel.', latest: false });
-                const d2 = new Date(base.getTime() + 5*3600000);  events.push({ date: d2.toLocaleDateString(), time: d2.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Parcel received at drop-off point.', latest: false });
-                const d3 = new Date(base.getTime() + 18*3600000); events.push({ date: d3.toLocaleDateString(), time: d3.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Parcel departed from sorting facility.', latest: false });
-                const d4 = new Date(base.getTime() + 36*3600000); events.push({ date: d4.toLocaleDateString(), time: d4.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Out for delivery — rider is on the way to you!', latest: true });
-            } else if (order.status === 'Delivered') {
-                const d1 = new Date(base.getTime() + 2*3600000);  events.push({ date: d1.toLocaleDateString(), time: d1.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Seller is preparing your parcel.', latest: false });
-                const d2 = new Date(base.getTime() + 5*3600000);  events.push({ date: d2.toLocaleDateString(), time: d2.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Parcel received at drop-off point.', latest: false });
-                const d3 = new Date(base.getTime() + 18*3600000); events.push({ date: d3.toLocaleDateString(), time: d3.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Parcel arrived at sorting facility.', latest: false });
-                const d4 = new Date(base.getTime() + 30*3600000); events.push({ date: d4.toLocaleDateString(), time: d4.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Out for delivery.', latest: false });
-                const d5 = new Date(base.getTime() + 48*3600000); events.push({ date: d5.toLocaleDateString(), time: d5.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), text: 'Parcel delivered successfully. Thank you!', latest: true });
-            }
-            return events.reverse();
-        }
+    const base = new Date(order.date + ' ' + order.time);
+
+    const events = [];
+
+    events.push({
+        date: order.date,
+        time: order.time,
+        text: 'Order placed successfully.',
+        latest: order.status === 'Pending'
+    });
+
+    if (order.status === 'Pending' || order.status === 'Awaiting Payment') {
+
+        const prep = new Date(base.getTime() + 10 * 60000); // 10 mins
+        events.push({
+            date: prep.toLocaleDateString(),
+            time: prep.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            text: 'Preparing your order at store.',
+            latest: true
+        });
+
+    } else if (order.status === 'Shipped') {
+
+        const prep = new Date(base.getTime() + 10 * 60000);
+        const packed = new Date(base.getTime() + 20 * 60000);
+
+        events.push({
+            date: prep.toLocaleDateString(),
+            time: prep.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            text: 'Order is being prepared.',
+            latest: false
+        });
+
+        events.push({
+            date: packed.toLocaleDateString(),
+            time: packed.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            text: 'Order packed and ready for dispatch.',
+            latest: true
+        });
+
+    } else if (order.status === 'Out for Delivery') {
+
+        const shipped = new Date(base.getTime() + 20 * 60000);
+        const out = new Date(base.getTime() + 40 * 60000);
+
+        events.push({
+            date: shipped.toLocaleDateString(),
+            time: shipped.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            text: 'Courier picked up your order.',
+            latest: false
+        });
+
+        events.push({
+            date: out.toLocaleDateString(),
+            time: out.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            text: 'Rider is on the way',
+            latest: true
+        });
+
+    } else if (order.status === 'Delivered') {
+
+        const delivered = new Date(base.getTime() + 60 * 60000);
+
+        events.push({
+            date: delivered.toLocaleDateString(),
+            time: delivered.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            text: 'Delivered successfully',
+            latest: true
+        });
+    }
+
+    return events;
+}
 
         function getStepState(order) {
-            const map = {
-                'Pending':          { placed:'active', shipped:'',       out:'',       delivered:'',       lines:[false,false,false] },
-                'Awaiting Payment': { placed:'active', shipped:'',       out:'',       delivered:'',       lines:[false,false,false] },
-                'Shipped':          { placed:'done',   shipped:'active', out:'',       delivered:'',       lines:[true, false,false] },
-                'Out for Delivery': { placed:'done',   shipped:'done',   out:'active', delivered:'',       lines:[true, true, false] },
-                'Delivered':        { placed:'done',   shipped:'done',   out:'done',   delivered:'active', lines:[true, true, true]  },
-            };
-            return map[order.status] || map['Pending'];
-        }
+    const map = {
+        'Pending': {
+            placed: 'active',
+            shipped: '',
+            out: '',
+            delivered: '',
+            lines: [false, false, false]
+        },
 
-        function getEstimatedDate(order) {
+        'Awaiting Payment': {
+            placed: 'active',
+            shipped: '',
+            out: '',
+            delivered: '',
+            lines: [false, false, false]
+        },
+
+        'Shipped': {
+            placed: 'done',
+            shipped: 'active',
+            out: '',
+            delivered: '',
+            lines: [true, false, false]
+        },
+
+        'Out for Delivery': {
+            placed: 'done',
+            shipped: 'done',
+            out: 'active',
+            delivered: '',
+            lines: [true, true, false]
+        },
+
+        'Delivered': {
+            placed: 'done',
+            shipped: 'done',
+            out: 'done',
+            delivered: 'active',
+            lines: [true, true, true]
+        }
+    };
+
+    return map[order.status] || map['Pending'];
+}
+
+         function getEstimatedDate(order) {
             const base = new Date(order.date);
             const from = new Date(base.getTime() + 3 * 86400000);
             const to   = new Date(base.getTime() + 7 * 86400000);
@@ -1729,15 +1953,12 @@ async function processOrder() {
             return `${from.toLocaleDateString('en-PH', opts)} – ${to.toLocaleDateString('en-PH', opts)}`;
         }
 
+
         function openTracking(idx) {
             const order = orderHistory[idx];
             if (!order) return;
-            document.getElementById('trackingOrderId').textContent = order.orderId;
+            document.getElementById('trackingOrderId').textContent = order.orderNumber;
             document.getElementById('trackingEstDate').textContent = getEstimatedDate(order);
-            if (!order.trackingNumber) {
-                order.trackingNumber = 'PH' + Math.floor(1000000000000 + Math.random() * 9000000000000);
-                localStorage.setItem(`orders_${currentUser}`, JSON.stringify(orderHistory));
-            }
             document.getElementById('trackingNumber').textContent = order.trackingNumber;
             const state = getStepState(order);
             document.getElementById('tstep-placed').className    = 'tracking-step ' + state.placed;
