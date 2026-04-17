@@ -1397,13 +1397,14 @@ function loadAddresses() {
                         </button>
 
                         <input type="number"
-                               id="qty-${p.id}"
-                               class="form-control text-center qty-input"
-                               value="1"
-                               min="1"
-                               max="${stock}"
-                               style="width:60px;"
-                               ${isOut ? 'disabled' : ''}>
+       id="qty-${p.id}"
+       class="form-control text-center qty-input"
+       value="1"
+       min="1"
+       max="${stock}"
+       oninput="validateQty(this, ${stock})"
+       style="width:60px;"
+       ${isOut ? 'disabled' : ''}>
 
                         <button class="btn btn-outline-secondary btn-sm"
                                 onclick="changeQty(this, 1)"
@@ -1431,14 +1432,36 @@ function loadAddresses() {
 
         function changeQty(btn, delta) {
     const input = btn.parentElement.querySelector('.qty-input');
-    let val = parseInt(input.value) || 1;
-    val += delta;
 
-    const max = parseInt(input.max) || 99;
-    if (val < 1) val = 1;
-    if (val > max) val = max;
+    let value = parseInt(input.value);
+    const max = parseInt(input.max) || 1;
 
-    input.value = val;
+    if (isNaN(value)) value = 1;
+
+    value += delta;
+
+    if (value < 1) value = 1;
+    if (value > max) value = max;
+
+    input.value = value;
+}
+
+function validateQty(input, maxStock) {
+    let value = input.value;
+
+    // Remove non-numbers (prevents typing letters, symbols)
+    value = value.replace(/[^0-9]/g, '');
+
+    value = parseInt(value);
+
+    if (isNaN(value)) value = 1;
+    if (value < 1) value = 1;
+    if (value > maxStock) {
+        value = maxStock;
+        showToast(`Only ${maxStock} items available`, 'error'); // optional
+    }
+
+    input.value = value;
 }
 
     async function loadProducts() {

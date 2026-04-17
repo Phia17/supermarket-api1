@@ -375,7 +375,9 @@ def create_order(request):
 # ==================== Contact Us ====================
 
 import threading
+from django.views.decorators.csrf import csrf_exempt
 
+@csrf_exempt
 def send_email_async(email, message):
     send_mail(
         f'Contact Us Message from {email}',
@@ -410,6 +412,9 @@ def contact_us(request):
         'message': 'Invalid request'
     })
 
+from django.db import transaction
+from django.db.models import F
+
 @login_required
 @csrf_exempt
 def cancel_order(request):
@@ -419,29 +424,36 @@ def cancel_order(request):
     try:
         data = json.loads(request.body.decode('utf-8'))
         order_id = data.get('order_id')
+
         if not order_id:
             return JsonResponse({'success': False, 'message': 'Missing order_id'}, status=400)
 
-        order = Order.objects.select_related('user').get(id=int(order_id), user=request.user)
-        
-        # Restore stock from OrderItems
-        order_items = OrderItem.objects.filter(order=order).select_related('product')
-        for item in order_items:
-            item.product.stock += item.quantity 
-            item.product.save(update_fields=['stock'])
-        
-      
-        order.status = 'cancelled'
-        order.save(update_fields=['status', 'updated_at'])
+        with transaction.atomic():
+            order = Order.objects.select_for_update().get(id=int(order_id), user=request.user)
 
-        return JsonResponse({'success': True, 'message': 'Order cancelled successfully! Stock restored.'})
-    except ValueError:
-        return JsonResponse({'success': False, 'message': 'Invalid order_id'}, status=400)
+            if order.status == 'cancelled':
+                return JsonResponse({'success': False, 'message': 'Order already cancelled'})
+
+            order_items = OrderItem.objects.select_related('product').filter(order=order)
+
+            for item in order_items:
+                item.product.stock = F('stock') + item.quantity
+                item.product.save(update_fields=['stock'])
+
+            order.status = 'cancelled'
+            order.save(update_fields=['status'])
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Order cancelled and stock restored'
+        })
+
     except Order.DoesNotExist:
         return JsonResponse({'success': False, 'message': 'Order not found'}, status=404)
+
     except Exception as e:
         return JsonResponse({'success': False, 'message': str(e)}, status=500)
-
+    
 @csrf_exempt
 def reset_password(request):
     if request.method == "POST":

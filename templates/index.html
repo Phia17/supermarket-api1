@@ -405,22 +405,27 @@ function setupEventListeners() {
 
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('contactForm');
-
     if (!form) return;
+
+    function getCSRFToken() {
+        return document.cookie
+            .split('; ')
+            .find(row => row.startsWith('csrftoken='))
+            ?.split('=')[1];
+    }
 
     form.addEventListener('submit', async function (e) {
         e.preventDefault();
 
         const email = document.getElementById('contactEmail').value.trim();
         const message = document.getElementById('contactMessage').value.trim();
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
         try {
             const response = await fetch('/api/contact-us/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRFToken': csrfToken
+                    'X-CSRFToken': getCSRFToken()
                 },
                 body: new URLSearchParams({
                     email: email,
@@ -429,12 +434,9 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             const data = await response.json();
-
             alert(data.message);
 
-            if (data.success) {
-                form.reset();
-            }
+            if (data.success) form.reset();
 
         } catch (error) {
             console.error('Error:', error);
